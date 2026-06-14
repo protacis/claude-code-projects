@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Weekly Meals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f4f1eb;
+      --card:     #ffffff;
+      --accent:   #4c6e5d;
+      --accent2:  #3a5547;
+      --text:     #1a1a1a;
+      --sub:      #999;
+      --border:   #ede9e1;
+      --tag-bg:   #eef3f0;
+      --tag-text: #4c6e5d;
+      --p-color:  #4c9e8a;
+      --c-color:  #e8a030;
+      --f-color:  #d96b6b;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 90px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 24px 22px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .week-label {
+      font-size: 0.78rem;
+      color: var(--sub);
+      margin-top: 5px;
+      font-weight: 300;
+    }
+
+    .btn-shuffle-all {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 100px;
+      padding: 10px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .btn-shuffle-all:hover  { background: var(--accent2); }
+    .btn-shuffle-all:active { transform: scale(0.96); }
+
+    /* ── Grid ── */
+    main {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 20px 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+    }
+
+    .day-card { scroll-snap-align: start; }
+
+    /* ── Day card ── */
+    .day-card {
+      background: var(--card);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    .day-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .day-name  { font-family: 'DM Serif Display', serif; font-size: 1.15rem; font-weight: 400; }
+    .day-date  { font-size: 0.75rem; color: var(--sub); font-weight: 300; }
+
+    .day-tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .day-tag.today { background: var(--accent); color: #fff; }
+
+    /* ── Meal row ── */
+    .meal-row {
+      display: flex;
+      align-items: center;
+      padding: 11px 12px;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .meal-row:last-child { border-bottom: none; }
+    .meal-row:hover, .meal-row:active { background: #f9f7f3; }
+
+    .meal-icon  { font-size: 1.1rem; width: 28px; text-align: center; flex-shrink: 0; }
+
+    .meal-info  { flex: 1; min-width: 0; }
+    .meal-type  { font-size: 0.65rem; font-weight: 500; color: var(--sub); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+    .meal-name  { font-size: 0.95rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .btn-reshuffle {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 4px 5px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-reshuffle:hover { color: var(--accent); background: var(--tag-bg); }
+
+    /* ── Scrim ── */
+    #scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #scrim.open { opacity: 1; pointer-events: all; }
+
+    /* ── Modal sheet ── */
+    #modal {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--card);
+      border-radius: 22px 22px 0 0;
+      z-index: 101;
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 90svh;
+      display: flex;
+      flex-direction: column;
+    }
+    #modal.open { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: #e0ddd6;
+      border-radius: 100px;
+      margin: 12px auto 0;
+      flex-shrink: 0;
+    }
+
+    .modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px 0;
+      flex-shrink: 0;
+    }
+
+    .modal-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .modal-badge-icon { font-size: 1rem; }
+
+    .modal-actions { display: flex; gap: 8px; align-items: center; }
+
+    .btn-modal-shuffle {
+      background: var(--tag-bg);
+      color: var(--accent);
+      border: none;
+      border-radius: 100px;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-modal-shuffle:hover { background: #d9e8df; }
+
+    .btn-modal-close {
+      background: #f0ede6;
+      border: none;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      font-size: 0.85rem;
+      color: var(--sub);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .btn-modal-close:hover { background: #e5e0d6; }
+
+    #modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.7rem;
+      font-weight: 400;
+      padding: 10px 22px 0;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
+    /* Scrollable body */
+    .modal-body {
+      overflow-y: auto;
+      padding: 20px 22px 40px;
+      flex: 1;
+    }
+
+    /* ── Macros ── */
+    .macros-section { margin-bottom: 28px; }
+
+    .calories-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+    .calories-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.4rem;
+      line-height: 1;
+      color: var(--text);
+    }
+    .calories-unit { font-size: 0.8rem; color: var(--sub); font-weight: 300; }
+
+    .macro-bars { display: flex; flex-direction: column; gap: 11px; }
+
+    .macro-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .macro-label-col {
+      width: 58px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .macro-bar-wrap {
+      flex: 1;
+      height: 7px;
+      background: #f0ede6;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .macro-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .macro-val-col {
+      width: 36px;
+      text-align: right;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    /* ── Ingredients ── */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+
+    .ingredients-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ingredient-item:last-child { border-bottom: none; }
+
+    .ingredient-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #d5d0c8;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      font-size: 0.6rem;
+      color: transparent;
+    }
+    .ingredient-item.checked .ingredient-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .ingredient-text {
+      font-size: 0.9rem;
+      color: var(--text);
+      transition: color 0.15s;
+    }
+    .ingredient-item.checked .ingredient-text {
+      color: var(--sub);
+      text-decoration: line-through;
+    }
+
+    /* ── Meal select dropdown ── */
+    .meal-select {
+      -webkit-appearance: none;
+      appearance: none;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      width: 100%;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .btn-info {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 4px 5px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-info:hover { color: var(--accent); background: var(--tag-bg); }
+
+    /* ── Library view ── */
+    #view-library {
+      display: none;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    .lib-section {
+      background: var(--card);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .lib-section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lib-section-icon  { font-size: 1.2rem; line-height: 1; }
+    .lib-section-label {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      font-weight: 400;
+      flex: 1;
+      text-transform: capitalize;
+    }
+    .lib-section-count {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      font-size: 0.68rem;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 100px;
+    }
+
+    .lib-meal-row {
+      display: flex;
+      align-items: center;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+      gap: 12px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lib-meal-row:last-child { border-bottom: none; }
+    .lib-meal-row:active { background: #faf9f6; }
+
+    .lib-meal-name { flex: 1; font-size: 0.95rem; color: var(--text); }
+    .lib-meal-cal  { font-size: 0.78rem; color: var(--sub); white-space: nowrap; }
+    .lib-meal-arrow { color: #d0ccc6; font-size: 0.75rem; }
+
+    /* ── Day macro summary ── */
+    .day-macros {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 9px 12px;
+      background: #faf8f4;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      row-gap: 2px;
+    }
+
+    .day-macro-cal {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-right: 10px;
+    }
+
+    .day-macro-item {
+      font-size: 0.72rem;
+      color: var(--sub);
+      margin-right: 10px;
+    }
+
+    .day-macro-item b {
+      font-weight: 500;
+      margin-left: 2px;
+    }
+
+    .day-macro-item.p b { color: var(--p-color); }
+    .day-macro-item.c b { color: var(--c-color); }
+    .day-macro-item.f b { color: var(--f-color); }
+
+    @media (max-width: 360px) {
+      main { padding: 16px 12px; gap: 12px; }
+      .meal-row { padding: 12px 14px; }
+      #modal-title { font-size: 1.4rem; }
+    }
+
+    /* ── Tab bar ── */
+    #tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 12px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--sub);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-btn .tab-icon { font-size: 1.3rem; line-height: 1; }
+    .tab-btn.active { color: var(--accent); }
+
+    /* ── Shopping view ── */
+    #view-shopping {
+      display: none;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    .sl-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .sl-progress {
+      font-size: 0.8rem;
+      color: var(--sub);
+      font-weight: 400;
+    }
+
+    .sl-progress span { color: var(--accent); font-weight: 500; }
+
+    .btn-uncheck {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--sub);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-uncheck:hover { background: var(--bg); color: var(--text); }
+
+    /* Category cards */
+    .sl-category {
+      background: var(--card);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .sl-cat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sl-cat-icon  { font-size: 1.2rem; line-height: 1; }
+    .sl-cat-label {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1rem;
+      font-weight: 400;
+      flex: 1;
+    }
+    .sl-cat-count {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      font-size: 0.68rem;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 100px;
+    }
+
+    /* Ingredient rows */
+    .sl-ing-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sl-ing-item:last-child { border-bottom: none; }
+    .sl-ing-item:active { background: #faf9f6; }
+
+    .sl-check {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid #d5d0c8;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      color: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .sl-ing-item.checked .sl-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .sl-ing-text {
+      font-size: 0.95rem;
+      color: var(--text);
+      flex: 1;
+      transition: color 0.15s;
+    }
+    .sl-ing-item.checked .sl-ing-text {
+      color: #c0bbb2;
+      text-decoration: line-through;
+    }
+
+    .sl-ing-qty {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--tag-bg);
+      padding: 3px 10px;
+      border-radius: 100px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .sl-ing-item.checked .sl-ing-qty {
+      color: #c0bbb2;
+      background: #f2f0ec;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Weekly Meals</h1>
+    <p class="week-label" id="week-label"></p>
+  </div>
+  <button class="btn-shuffle-all" id="btn-shuffle-all">↻ Shuffle Week</button>
+</header>
+
+<main id="grid"></main>
+
+<!-- Shopping view -->
+<section id="view-shopping">
+  <div class="sl-header-bar">
+    <p class="sl-progress">
+      <span id="sl-done">0</span> / <span id="sl-total">0</span> items
+    </p>
+    <button class="btn-uncheck" id="btn-uncheck-all">Uncheck all</button>
+  </div>
+  <div id="sl-list"></div>
+</section>
+
+<!-- Library view -->
+<section id="view-library"></section>
+
+<!-- Tab bar -->
+<nav id="tab-bar">
+  <button class="tab-btn active" data-view="meals">
+    <span class="tab-icon">📅</span>My Week
+  </button>
+  <button class="tab-btn" data-view="library">
+    <span class="tab-icon">🍽️</span>All Meals
+  </button>
+  <button class="tab-btn" data-view="shopping">
+    <span class="tab-icon">🛒</span>Shopping
+  </button>
+</nav>
+
+<!-- Scrim -->
+<div id="scrim"></div>
+
+<!-- Detail sheet -->
+<div id="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-top">
+    <div class="modal-badge">
+      <span class="modal-badge-icon" id="modal-icon"></span>
+      <span id="modal-type"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-shuffle" id="btn-modal-shuffle">↻ Shuffle</button>
+      <button class="btn-modal-close" id="btn-modal-close">✕</button>
+    </div>
+  </div>
+  <div id="modal-title"></div>
+
+  <div class="modal-body">
+    <div class="macros-section">
+      <div class="calories-row">
+        <span class="calories-num" id="m-cal"></span>
+        <span class="calories-unit">kcal</span>
+      </div>
+      <div class="macro-bars">
+        <div class="macro-row">
+          <div class="macro-label-col">Protein</div>
+          <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-p" style="background:var(--p-color)"></div></div>
+          <div class="macro-val-col" id="val-p"></div>
+        </div>
+        <div class="macro-row">
+          <div class="macro-label-col">Carbs</div>
+          <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-c" style="background:var(--c-color)"></div></div>
+          <div class="macro-val-col" id="val-c"></div>
+        </div>
+        <div class="macro-row">
+          <div class="macro-label-col">Fat</div>
+          <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-f" style="background:var(--f-color)"></div></div>
+          <div class="macro-val-col" id="val-f"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Ingredients</div>
+    <ul class="ingredients-list" id="modal-ingredients"></ul>
+  </div>
+</div>
+
+<script>
+  const MEALS = {
+    breakfast: [
+      { name: 'Avocado Toast', ingredients: ['2 slices sourdough bread','1 ripe avocado','Squeeze of lemon juice','Red pepper flakes','Salt & black pepper','1 tsp olive oil'], macros: { calories: 380, protein: 9, carbs: 38, fat: 22 } },
+      { name: 'Greek Yogurt & Granola', ingredients: ['200g Greek yogurt','50g granola','1 tbsp honey','Handful of blueberries','Handful of strawberries'], macros: { calories: 320, protein: 18, carbs: 42, fat: 8 } },
+      { name: 'Scrambled Eggs', ingredients: ['3 large eggs','1 tbsp butter','2 tbsp milk','Salt & black pepper','Fresh chives'], macros: { calories: 280, protein: 21, carbs: 2, fat: 20 } },
+      { name: 'Oatmeal with Berries', ingredients: ['80g rolled oats','250ml milk','1 banana','Handful of mixed berries','1 tbsp honey','½ tsp cinnamon'], macros: { calories: 350, protein: 12, carbs: 62, fat: 6 } },
+      { name: 'Smoothie Bowl', ingredients: ['1 frozen banana','100g frozen mixed berries','100ml almond milk','40g granola','1 tsp chia seeds','1 tbsp coconut flakes','Drizzle of honey'], macros: { calories: 390, protein: 8, carbs: 72, fat: 10 } },
+      { name: 'Pancakes', ingredients: ['150g plain flour','2 eggs','200ml milk','1 tbsp butter','1 tsp baking powder','Maple syrup to serve'], macros: { calories: 480, protein: 14, carbs: 68, fat: 16 } },
+      { name: 'French Toast', ingredients: ['2 thick bread slices','2 eggs','3 tbsp milk','½ tsp vanilla extract','½ tsp cinnamon','1 tbsp butter','Maple syrup & powdered sugar'], macros: { calories: 440, protein: 16, carbs: 52, fat: 18 } },
+      { name: 'Chia Pudding', ingredients: ['40g chia seeds','250ml almond milk','½ tsp vanilla extract','1 tbsp honey','½ mango, diced','1 kiwi, sliced'], macros: { calories: 290, protein: 9, carbs: 38, fat: 12 } },
+      { name: 'Overnight Oats', ingredients: ['80g rolled oats','200ml milk','2 tbsp Greek yogurt','1 banana','1 tbsp peanut butter','1 tbsp honey'], macros: { calories: 420, protein: 16, carbs: 58, fat: 14 } },
+      { name: 'Eggs Benedict', ingredients: ['2 English muffins','4 eggs','4 slices Canadian bacon','Hollandaise sauce','Fresh chives','White vinegar (for poaching)'], macros: { calories: 520, protein: 28, carbs: 32, fat: 30 } },
+      { name: 'Acai Bowl', ingredients: ['2 tsp acai powder','1 frozen banana','100ml almond milk','40g granola','Fresh strawberries','Fresh blueberries','1 tbsp coconut flakes'], macros: { calories: 360, protein: 7, carbs: 65, fat: 9 } },
+      { name: 'Veggie Omelette', ingredients: ['3 eggs','½ bell pepper, diced','Handful of spinach','50g mushrooms, sliced','¼ onion, diced','30g feta cheese','1 tsp olive oil','Salt & pepper'], macros: { calories: 310, protein: 24, carbs: 8, fat: 21 } },
+      { name: 'Smoked Salmon Bagel', ingredients: ['1 bagel','2 tbsp cream cheese','80g smoked salmon','1 tbsp capers','¼ red onion, thinly sliced','Fresh dill','Squeeze of lemon'], macros: { calories: 450, protein: 26, carbs: 48, fat: 16 } },
+      { name: 'Shakshuka', ingredients: ['3 eggs','400g canned tomatoes','1 bell pepper, diced','1 onion, diced','2 garlic cloves','1 tsp cumin','1 tsp paprika','1 tbsp olive oil','Fresh parsley or cilantro'], macros: { calories: 310, protein: 20, carbs: 18, fat: 18 } },
+      { name: 'Ricotta Toast', ingredients: ['2 slices sourdough bread','100g ricotta','1 tbsp honey','20g walnuts','2 fresh figs, halved','Lemon zest'], macros: { calories: 410, protein: 16, carbs: 46, fat: 18 } },
+    ],
+    lunch: [
+      { name: 'Caesar Salad', ingredients: ['1 romaine lettuce','30g parmesan, shaved','50g croutons','3 tbsp Caesar dressing','Squeeze of lemon','Black pepper','4 anchovy fillets (optional)'], macros: { calories: 320, protein: 12, carbs: 22, fat: 20 } },
+      { name: 'Grilled Chicken Wrap', ingredients: ['1 large tortilla','150g grilled chicken breast','½ avocado, sliced','Romaine lettuce','1 tomato, sliced','3 tbsp Greek yogurt sauce','Squeeze of lime'], macros: { calories: 480, protein: 38, carbs: 42, fat: 14 } },
+      { name: 'Tomato Soup & Grilled Cheese', ingredients: ['400g canned tomatoes','1 onion','2 garlic cloves','100ml cream','Fresh basil','2 sourdough slices','60g cheddar cheese','1 tbsp butter'], macros: { calories: 520, protein: 18, carbs: 52, fat: 28 } },
+      { name: 'Buddha Bowl', ingredients: ['150g cooked quinoa','1 sweet potato, roasted','80g chickpeas, roasted','½ avocado','Handful of kale','3 tbsp tahini dressing','Squeeze of lemon','Mixed seeds'], macros: { calories: 490, protein: 16, carbs: 62, fat: 20 } },
+      { name: 'Turkey BLT', ingredients: ['2 sourdough slices','100g turkey slices','2 bacon rashers','Romaine lettuce','1 tomato, sliced','1 tbsp mayo','1 tsp Dijon mustard'], macros: { calories: 460, protein: 32, carbs: 38, fat: 18 } },
+      { name: 'Pasta Primavera', ingredients: ['160g penne pasta','1 zucchini, sliced','Cherry tomatoes','1 bell pepper','2 garlic cloves','3 tbsp olive oil','30g parmesan','Fresh basil'], macros: { calories: 520, protein: 16, carbs: 72, fat: 16 } },
+      { name: 'Tuna Salad Sandwich', ingredients: ['1 can tuna, drained','2 tbsp mayo','1 celery stalk, diced','¼ red onion, diced','Squeeze of lemon','2 whole wheat bread slices','Lettuce & tomato'], macros: { calories: 380, protein: 28, carbs: 38, fat: 12 } },
+      { name: 'Quinoa Bowl', ingredients: ['150g cooked quinoa','80g black beans','Roasted corn','½ avocado','Cherry tomatoes','Lime dressing','Fresh cilantro'], macros: { calories: 440, protein: 18, carbs: 58, fat: 16 } },
+      { name: 'Caprese Salad', ingredients: ['200g fresh mozzarella','3 tomatoes, sliced','Fresh basil leaves','2 tbsp olive oil','2 tbsp balsamic glaze','Flaky sea salt','Black pepper'], macros: { calories: 340, protein: 18, carbs: 12, fat: 24 } },
+      { name: 'Chicken Quesadilla', ingredients: ['2 flour tortillas','150g grilled chicken, shredded','60g cheddar, grated','½ bell pepper, diced','¼ onion, diced','Sour cream','Salsa','Guacamole'], macros: { calories: 560, protein: 36, carbs: 44, fat: 24 } },
+      { name: 'Lentil Soup', ingredients: ['200g red lentils','2 carrots, diced','1 onion, diced','3 garlic cloves','1 tsp cumin','½ tsp turmeric','1L vegetable stock','Squeeze of lemon','2 tbsp olive oil'], macros: { calories: 340, protein: 20, carbs: 54, fat: 6 } },
+      { name: 'Greek Salad Wrap', ingredients: ['1 large tortilla','½ cucumber, diced','2 tomatoes, diced','60g kalamata olives','80g feta cheese','¼ red onion','3 tbsp hummus','Dried oregano'], macros: { calories: 390, protein: 14, carbs: 46, fat: 18 } },
+      { name: 'Niçoise Salad', ingredients: ['1 can tuna','100g green beans','2 small potatoes, boiled','2 eggs, boiled','Kalamata olives','Cherry tomatoes','Anchovy fillets','Dijon dressing'], macros: { calories: 420, protein: 34, carbs: 28, fat: 20 } },
+      { name: 'Falafel Pita', ingredients: ['1 pita bread','6 falafels','2 tbsp hummus','½ cucumber, diced','1 tomato, diced','¼ red onion','2 tbsp tahini sauce','Fresh parsley'], macros: { calories: 500, protein: 18, carbs: 64, fat: 20 } },
+      { name: 'Poke Bowl', ingredients: ['150g sushi rice','120g fresh salmon, diced','50g edamame','½ cucumber, sliced','½ avocado','½ mango, diced','2 tbsp soy sauce','1 tsp sesame oil','Seaweed strips'], macros: { calories: 520, protein: 32, carbs: 58, fat: 18 } },
+    ],
+    dinner: [
+      { name: 'Spaghetti Bolognese', ingredients: ['200g spaghetti','250g ground beef','1 onion, diced','3 garlic cloves','400g canned tomatoes','100ml red wine','1 carrot','1 celery stalk','30g parmesan','Fresh basil'], macros: { calories: 620, protein: 36, carbs: 72, fat: 18 } },
+      { name: 'Grilled Salmon', ingredients: ['200g salmon fillet','1 lemon, sliced','2 garlic cloves, minced','2 tbsp olive oil','Fresh dill','200g asparagus','Cherry tomatoes','1 tbsp capers'], macros: { calories: 480, protein: 42, carbs: 12, fat: 28 } },
+      { name: 'Chicken Stir-Fry', ingredients: ['200g chicken breast, sliced','200g broccoli florets','1 bell pepper, sliced','100g snap peas','3 garlic cloves','1 tbsp fresh ginger','3 tbsp soy sauce','1 tsp sesame oil','200g jasmine rice'], macros: { calories: 520, protein: 40, carbs: 56, fat: 12 } },
+      { name: 'Beef Tacos', ingredients: ['250g ground beef','1 tbsp taco seasoning','8 corn tortillas','Shredded lettuce','2 tomatoes, diced','60g cheddar, grated','Sour cream','Salsa','Lime wedges'], macros: { calories: 580, protein: 34, carbs: 48, fat: 26 } },
+      { name: 'Mushroom Risotto', ingredients: ['200g arborio rice','300g mixed mushrooms','1 onion, diced','2 garlic cloves','100ml white wine','40g parmesan','2 tbsp butter','800ml vegetable stock','Fresh thyme'], macros: { calories: 560, protein: 16, carbs: 76, fat: 18 } },
+      { name: 'Roast Chicken', ingredients: ['1 whole chicken','4 garlic cloves','Fresh rosemary & thyme','1 lemon, halved','3 tbsp olive oil','500g baby potatoes','3 carrots','1 onion, quartered'], macros: { calories: 580, protein: 48, carbs: 32, fat: 24 } },
+      { name: 'Shrimp Pasta', ingredients: ['200g linguine','250g raw shrimp','3 garlic cloves','Cherry tomatoes','100ml white wine','3 tbsp olive oil','Chili flakes','Fresh parsley','Squeeze of lemon'], macros: { calories: 540, protein: 36, carbs: 64, fat: 14 } },
+      { name: 'Veggie Curry', ingredients: ['400g chickpeas','1 sweet potato, diced','200g spinach','400ml coconut milk','1 onion','3 garlic cloves','1 tbsp fresh ginger','2 tbsp curry paste','200g basmati rice'], macros: { calories: 520, protein: 16, carbs: 72, fat: 18 } },
+      { name: 'BBQ Ribs', ingredients: ['800g pork ribs','4 tbsp BBQ sauce','1 tsp garlic powder','1 tsp smoked paprika','1 tbsp brown sugar','1 tbsp apple cider vinegar','Coleslaw to serve'], macros: { calories: 720, protein: 52, carbs: 32, fat: 40 } },
+      { name: 'Lamb Chops', ingredients: ['4 lamb chops','3 garlic cloves, minced','Fresh rosemary','Lemon zest','3 tbsp olive oil','Mint sauce','400g roasted vegetables'], macros: { calories: 620, protein: 46, carbs: 18, fat: 38 } },
+      { name: 'Fish & Chips', ingredients: ['2 cod fillets','150g plain flour','200ml cold beer','500g potatoes, chipped','100g frozen peas','Malt vinegar','Tartar sauce','Lemon wedges'], macros: { calories: 640, protein: 36, carbs: 68, fat: 24 } },
+      { name: 'Pad Thai', ingredients: ['200g rice noodles','200g raw shrimp','100g firm tofu','2 eggs','100g bean sprouts','3 spring onions','40g roasted peanuts','Lime wedges','Tamarind sauce','Fish sauce'], macros: { calories: 560, protein: 30, carbs: 66, fat: 18 } },
+      { name: 'Beef Steak & Fries', ingredients: ['250g ribeye steak','500g potatoes','2 tbsp garlic butter','Fresh rosemary','200g green beans','Dijon mustard','Salt & black pepper'], macros: { calories: 720, protein: 52, carbs: 42, fat: 36 } },
+      { name: 'Baked Cod', ingredients: ['2 cod fillets','1 lemon, sliced','3 garlic cloves, minced','40g breadcrumbs','Fresh parsley','1 tbsp capers','2 tbsp olive oil','Cherry tomatoes'], macros: { calories: 380, protein: 42, carbs: 18, fat: 12 } },
+      { name: 'Chicken Marsala', ingredients: ['2 chicken breasts','200g mushrooms, sliced','150ml Marsala wine','2 tbsp butter','2 garlic cloves','Fresh thyme','200ml chicken stock','1 tbsp flour','200g tagliatelle'], macros: { calories: 560, protein: 44, carbs: 48, fat: 18 } },
+    ],
+  };
+
+  const ICONS  = { breakfast: '☀️', lunch: '🌿', dinner: '🌙' };
+  const DAYS   = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function getMonday() {
+    const d = new Date(), day = d.getDay();
+    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function formatDate(d) { return `${d.getDate()} ${MONTHS[d.getMonth()]}`; }
+
+  function isToday(d) {
+    const t = new Date();
+    return d.getDate()===t.getDate() && d.getMonth()===t.getMonth() && d.getFullYear()===t.getFullYear();
+  }
+
+  const monday = getMonday();
+  const state = DAYS.map((name, i) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    return { name, date, meals: { breakfast: pick(MEALS.breakfast), lunch: pick(MEALS.lunch), dinner: pick(MEALS.dinner) } };
+  });
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  document.getElementById('week-label').textContent = `${formatDate(monday)} – ${formatDate(sunday)}, ${monday.getFullYear()}`;
+
+  // ── Modal ──────────────────────────────────────────────────
+  let activeDayIdx = -1, activeType = 'breakfast';
+
+  function fillModal(meal, type, fromDay) {
+    document.getElementById('modal-icon').textContent  = ICONS[type];
+    document.getElementById('modal-type').textContent  = type;
+    document.getElementById('modal-title').textContent = meal.name;
+    document.getElementById('m-cal').textContent       = meal.macros.calories;
+    document.getElementById('val-p').textContent       = meal.macros.protein + 'g';
+    document.getElementById('val-c').textContent       = meal.macros.carbs   + 'g';
+    document.getElementById('val-f').textContent       = meal.macros.fat     + 'g';
+    document.getElementById('bar-p').style.width = Math.min(100, meal.macros.protein / 80  * 100) + '%';
+    document.getElementById('bar-c').style.width = Math.min(100, meal.macros.carbs   / 100 * 100) + '%';
+    document.getElementById('bar-f').style.width = Math.min(100, meal.macros.fat     / 60  * 100) + '%';
+    document.getElementById('btn-modal-shuffle').style.display = fromDay ? '' : 'none';
+
+    const list = document.getElementById('modal-ingredients');
+    list.innerHTML = '';
+    meal.ingredients.forEach(ing => {
+      const li = document.createElement('li');
+      li.className = 'ingredient-item';
+      li.innerHTML = `<div class="ingredient-check">✓</div><span class="ingredient-text">${ing}</span>`;
+      li.addEventListener('click', () => li.classList.toggle('checked'));
+      list.appendChild(li);
+    });
+  }
+
+  function openModal(dayIdx, type) {
+    activeDayIdx = dayIdx;
+    activeType   = type;
+    fillModal(state[dayIdx].meals[type], type, true);
+    document.getElementById('scrim').classList.add('open');
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function openLibraryModal(meal, type) {
+    activeDayIdx = -1;
+    activeType   = type;
+    fillModal(meal, type, false);
+    document.getElementById('scrim').classList.add('open');
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('scrim').classList.remove('open');
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  document.getElementById('scrim').addEventListener('click', closeModal);
+  document.getElementById('btn-modal-close').addEventListener('click', closeModal);
+
+  document.getElementById('btn-modal-shuffle').addEventListener('click', () => {
+    if (activeDayIdx < 0) return;
+    const current = state[activeDayIdx].meals[activeType];
+    let next = current;
+    while (next === current) next = pick(MEALS[activeType]);
+    state[activeDayIdx].meals[activeType] = next;
+    fillModal(next, activeType, true);
+    // Sync the select and macros in the card
+    const cards = document.querySelectorAll('.day-card');
+    const sel = cards[activeDayIdx].querySelector(`.meal-row[data-type="${activeType}"] .meal-select`);
+    if (sel) sel.value = MEALS[activeType].indexOf(next);
+    refreshMacros(activeDayIdx);
+  });
+
+  // ── Render ──────────────────────────────────────────────────
+  function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+
+    state.forEach((day, di) => {
+      const today = isToday(day.date);
+      const card  = document.createElement('div');
+      card.className = 'day-card';
+      card.innerHTML = `
+        <div class="day-header">
+          <div>
+            <div class="day-name">${day.name}</div>
+            <div class="day-date">${formatDate(day.date)}</div>
+          </div>
+          <div class="day-tag ${today ? 'today' : ''}">${today ? 'Today' : day.name.slice(0,3)}</div>
+        </div>`;
+
+      ['breakfast','lunch','dinner'].forEach(type => {
+        const row = document.createElement('div');
+        row.className = 'meal-row';
+        row.dataset.type = type;
+
+        // Build select
+        const select = document.createElement('select');
+        select.className = 'meal-select';
+        MEALS[type].forEach((meal, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = meal.name;
+          if (meal === state[di].meals[type]) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', e => {
+          state[di].meals[type] = MEALS[type][parseInt(e.target.value)];
+          refreshMacros(di);
+        });
+
+        const icon    = document.createElement('div');
+        icon.className = 'meal-icon';
+        icon.textContent = ICONS[type];
+
+        const info    = document.createElement('div');
+        info.className = 'meal-info';
+        const label   = document.createElement('div');
+        label.className = 'meal-type';
+        label.textContent = type;
+        info.appendChild(label);
+        info.appendChild(select);
+
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'btn-info';
+        infoBtn.title = 'Details';
+        infoBtn.textContent = 'ℹ';
+        infoBtn.addEventListener('click', () => openModal(di, type));
+
+        const shuffleBtn = document.createElement('button');
+        shuffleBtn.className = 'btn-reshuffle';
+        shuffleBtn.title = 'Shuffle';
+        shuffleBtn.textContent = '↻';
+        shuffleBtn.addEventListener('click', () => {
+          const current = state[di].meals[type];
+          let next = current;
+          while (next === current) next = pick(MEALS[type]);
+          state[di].meals[type] = next;
+          select.value = MEALS[type].indexOf(next);
+          select.animate([{opacity:0},{opacity:1}],{duration:200});
+          refreshMacros(di);
+        });
+
+        row.appendChild(icon);
+        row.appendChild(info);
+        row.appendChild(infoBtn);
+        row.appendChild(shuffleBtn);
+        card.appendChild(row);
+      });
+
+      // Daily macro totals
+      const tot = ['breakfast','lunch','dinner'].reduce((a, t) => {
+        const m = day.meals[t].macros;
+        return { cal: a.cal + m.calories, p: a.p + m.protein, c: a.c + m.carbs, f: a.f + m.fat };
+      }, { cal: 0, p: 0, c: 0, f: 0 });
+
+      const macrosRow = document.createElement('div');
+      macrosRow.className = 'day-macros';
+      macrosRow.innerHTML = `
+        <span class="day-macro-cal">${tot.cal} kcal</span>
+        <span class="day-macro-item p">P<b>${tot.p}g</b></span>
+        <span class="day-macro-item c">C<b>${tot.c}g</b></span>
+        <span class="day-macro-item f">F<b>${tot.f}g</b></span>`;
+      card.appendChild(macrosRow);
+
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('btn-shuffle-all').addEventListener('click', () => {
+    state.forEach(day => {
+      day.meals.breakfast = pick(MEALS.breakfast);
+      day.meals.lunch     = pick(MEALS.lunch);
+      day.meals.dinner    = pick(MEALS.dinner);
+    });
+    render();
+  });
+
+  // ── Macro refresh ───────────────────────────────────────────
+  function refreshMacros(di) {
+    const day = state[di];
+    const tot = ['breakfast','lunch','dinner'].reduce((a, t) => {
+      const m = day.meals[t].macros;
+      return { cal: a.cal + m.calories, p: a.p + m.protein, c: a.c + m.carbs, f: a.f + m.fat };
+    }, { cal: 0, p: 0, c: 0, f: 0 });
+    const row = document.querySelectorAll('.day-card')[di]?.querySelector('.day-macros');
+    if (row) row.innerHTML = `
+      <span class="day-macro-cal">${tot.cal} kcal</span>
+      <span class="day-macro-item p">P<b>${tot.p}g</b></span>
+      <span class="day-macro-item c">C<b>${tot.c}g</b></span>
+      <span class="day-macro-item f">F<b>${tot.f}g</b></span>`;
+  }
+
+  // ── All Meals library ────────────────────────────────────────
+  function buildLibrary() {
+    const container = document.getElementById('view-library');
+    container.innerHTML = '';
+
+    ['breakfast','lunch','dinner'].forEach(type => {
+      const section = document.createElement('div');
+      section.className = 'lib-section';
+      section.innerHTML = `
+        <div class="lib-section-header">
+          <span class="lib-section-icon">${ICONS[type]}</span>
+          <span class="lib-section-label">${type}</span>
+          <span class="lib-section-count">${MEALS[type].length}</span>
+        </div>`;
+
+      MEALS[type].forEach(meal => {
+        const row = document.createElement('div');
+        row.className = 'lib-meal-row';
+        row.innerHTML = `
+          <span class="lib-meal-name">${meal.name}</span>
+          <span class="lib-meal-cal">${meal.macros.calories} kcal</span>
+          <span class="lib-meal-arrow">›</span>`;
+        row.addEventListener('click', () => openLibraryModal(meal, type));
+        section.appendChild(row);
+      });
+
+      container.appendChild(section);
+    });
+  }
+
+  // ── Shopping list ──────────────────────────────────────────
+
+  const FRACS = { '½':0.5, '⅓':0.333, '¼':0.25, '¾':0.75, '⅔':0.667, '⅛':0.125 };
+  const UNIT_LIST = ['tbsp','tsp','kg','g','ml','l','cup','cups','handful','squeeze','drizzle','slice','slices','rasher','rashers','clove','cloves','fillet','fillets','sprig','sprigs','bunch','can','cans'];
+  const VAGUE_UNITS = new Set(['handful','squeeze','drizzle','sprig','bunch']);
+  const DROP_WORDS = /\b(fresh|large|small|medium|thick|thin|whole|ripe|frozen|raw|dried|roasted|cooked|boiled|grilled|mixed|baby|cold|plain|powdered|canned)\b/gi;
+
+  const CATS = [
+    { id:'produce', icon:'🥦', label:'Fruit & Veg',
+      re:/avocado|tomato|lettuce|romaine|spinach|kale|pepper|onion|garlic|lemon|lime|banana|berr|mango|kiwi|fig|cucumber|zucchini|courgette|mushroom|asparagus|carrot|celery|potato|corn|bean sprout|edamame|broccoli|basil|parsley|cilantro|dill|chive|thyme|rosemary|mint|spring onion|beet/ },
+    { id:'dairy',   icon:'🥛', label:'Dairy & Eggs',
+      re:/\begg|milk|butter|cream|yogurt|cheese|mozzarella|parmesan|feta|ricotta|cheddar/ },
+    { id:'meat',    icon:'🥩', label:'Meat & Fish',
+      re:/chicken|ground beef|beef|pork|rib|lamb|salmon|tuna|cod|shrimp|turkey|bacon|anchovy|canadian bacon/ },
+    { id:'bakery',  icon:'🌾', label:'Bakery & Grains',
+      re:/bread|sourdough|flour|oat|pasta|spaghetti|penne|linguine|tagliatelle|noodle|quinoa|tortilla|bagel|pita|muffin|granola|crouton|lentil|chickpea|black bean|arborio|rice|chia seed/ },
+    { id:'pantry',  icon:'🫙', label:'Pantry & Sauces',
+      re:/./ },
+  ];
+
+  function parseIng(raw) {
+    let s = raw.trim();
+    for (const [f, v] of Object.entries(FRACS)) s = s.replace(f, v + ' ');
+    s = s.replace(/\(.*?\)/g, '').replace(/\s+to (serve|taste)\b.*/i, '').trim();
+
+    const numM = s.match(/^(\d+\.?\d*)\s*/);
+    let qty = numM ? parseFloat(numM[1]) : null;
+    if (numM) s = s.slice(numM[0].length);
+
+    let unit = '';
+    const unitRe = new RegExp(`^(${UNIT_LIST.join('|')})s?\\b\\s*`, 'i');
+    const unitM  = s.match(unitRe);
+    if (unitM) {
+      unit = unitM[1].toLowerCase().replace(/s$/, '');
+      s = s.slice(unitM[0].length);
+      if (qty === null && VAGUE_UNITS.has(unit)) qty = 1;
+    }
+    s = s.replace(/^of\s+/i, '').replace(/,.*$/, '').trim();
+    s = s.replace(/\bgarlic cloves?\b/i, 'garlic');
+    s = s.replace(DROP_WORDS, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return { qty, unit, name: s };
+  }
+
+  function fmtQty(qty, unit) {
+    if (qty === null) return '';
+    const n = qty % 1 === 0 ? qty : parseFloat(qty.toFixed(1));
+    if (!unit)   return `×${n}`;
+    if (unit === 'g' || unit === 'ml' || unit === 'kg') return `${n}${unit}`;
+    return `${n} ${unit}`;
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function updateSlCounter() {
+    const total = document.querySelectorAll('.sl-ing-item').length;
+    const done  = document.querySelectorAll('.sl-ing-item.checked').length;
+    document.getElementById('sl-done').textContent  = done;
+    document.getElementById('sl-total').textContent = total;
+  }
+
+  function buildShoppingList() {
+    // Collect + parse
+    const parsed = [];
+    state.forEach(day =>
+      ['breakfast','lunch','dinner'].forEach(t =>
+        day.meals[t].ingredients.forEach(ing => parsed.push(parseIng(ing)))
+      )
+    );
+
+    // Merge by name|unit
+    const map = new Map();
+    parsed.forEach(item => {
+      if (!item.name) return;
+      const key = item.name + '|' + item.unit;
+      if (map.has(key)) {
+        const ex = map.get(key);
+        if (item.qty !== null) ex.qty = (ex.qty ?? 0) + item.qty;
+      } else {
+        map.set(key, { ...item });
+      }
+    });
+
+    // Sort into categories
+    const buckets = {};
+    CATS.forEach(c => buckets[c.id] = []);
+    map.forEach(item => {
+      const cat = CATS.find(c => c.re.test(item.name)) || CATS[CATS.length - 1];
+      buckets[cat.id].push(item);
+    });
+    CATS.forEach(c => buckets[c.id].sort((a, b) => a.name.localeCompare(b.name)));
+
+    // Render
+    const container = document.getElementById('sl-list');
+    container.innerHTML = '';
+
+    CATS.forEach(cat => {
+      const items = buckets[cat.id];
+      if (!items.length) return;
+
+      const section = document.createElement('div');
+      section.className = 'sl-category';
+      section.innerHTML = `
+        <div class="sl-cat-header">
+          <span class="sl-cat-icon">${cat.icon}</span>
+          <span class="sl-cat-label">${cat.label}</span>
+          <span class="sl-cat-count">${items.length}</span>
+        </div>`;
+
+      items.forEach(item => {
+        const el  = document.createElement('div');
+        el.className = 'sl-ing-item';
+        const qty = fmtQty(item.qty, item.unit);
+        el.innerHTML = `
+          <div class="sl-check">✓</div>
+          <span class="sl-ing-text">${cap(item.name)}</span>
+          ${qty ? `<span class="sl-ing-qty">${qty}</span>` : ''}`;
+        el.addEventListener('click', () => { el.classList.toggle('checked'); updateSlCounter(); });
+        section.appendChild(el);
+      });
+
+      container.appendChild(section);
+    });
+
+    updateSlCounter();
+  }
+
+  document.getElementById('btn-uncheck-all').addEventListener('click', () => {
+    document.querySelectorAll('.sl-ing-item.checked').forEach(el => el.classList.remove('checked'));
+    updateSlCounter();
+  });
+
+  // ── Tab switching ──────────────────────────────────────────
+  const views = {
+    meals:    document.getElementById('grid'),
+    library:  document.getElementById('view-library'),
+    shopping: document.getElementById('view-shopping'),
+  };
+  const shuffleBtn = document.getElementById('btn-shuffle-all');
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const v = btn.dataset.view;
+
+      Object.entries(views).forEach(([key, el]) => {
+        el.style.display = key === v ? (key === 'meals' ? 'grid' : 'block') : 'none';
+      });
+      shuffleBtn.style.display = v === 'meals' ? '' : 'none';
+
+      if (v === 'shopping') buildShoppingList();
+      if (v === 'library')  buildLibrary();
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
