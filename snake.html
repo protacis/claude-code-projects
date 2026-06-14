@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Snake</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #1a1a1a;
+      font-family: 'Press Start 2P', monospace;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 16px 24px;
+    }
+
+    /* ── Screen ── */
+    .screen-wrap {
+      width: 100%;
+      max-width: 420px;
+      flex-shrink: 0;
+    }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      color: #8bac0f;
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 0 4px 6px;
+    }
+
+    .screen {
+      background: #8bac0f;
+      border-radius: 6px;
+      padding: 6px;
+      position: relative;
+      box-shadow: 0 0 0 4px #306230, 0 0 24px rgba(139,172,15,0.3);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      image-rendering: pixelated;
+      border-radius: 2px;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(139, 172, 15, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 4px;
+    }
+
+    #overlay .title    { color: #0f380f; font-size: 11px; letter-spacing: 2px; }
+    #overlay .sub      { color: #306230; font-size: 7px; text-align: center; line-height: 2; }
+    #overlay .score-final { color: #0f380f; font-size: 8px; }
+
+    /* ── Arrow buttons ── */
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      /* Take remaining height after screen */
+      flex: 1;
+      max-height: 280px;
+      padding-top: 10px;
+    }
+
+    .arrow {
+      background: #2a2a2a;
+      border: none;
+      border-radius: 18px;
+      color: #8bac0f;
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 0 #111, 0 8px 16px rgba(0,0,0,0.5);
+      transition: transform 0.07s, box-shadow 0.07s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .arrow:active, .arrow.pressed {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #111, 0 4px 8px rgba(0,0,0,0.4);
+      background: #333;
+    }
+
+    .arrow-empty { visibility: hidden; }
+
+    /* Start button fills center cell */
+    .arrow-ok {
+      background: #306230;
+      color: #8bac0f;
+      font-size: 8px;
+      letter-spacing: 0.5px;
+      border-radius: 50%;
+      box-shadow: 0 4px 0 #1a3a1a, 0 6px 12px rgba(0,0,0,0.5);
+    }
+
+    .arrow-ok:active, .arrow-ok.pressed {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1a3a1a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="screen-wrap">
+    <div class="hud">
+      <span>SNAKE</span>
+      <span id="hud-score">00000</span>
+    </div>
+    <div class="screen">
+      <canvas id="c" width="210" height="180"></canvas>
+      <div id="overlay">
+        <div class="title">SNAKE</div>
+        <div class="sub">Tap arrows to move</div>
+        <div class="sub" style="margin-top:4px">Tap ● to start</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dpad">
+    <div class="arrow-empty"></div>
+    <button class="arrow" id="btn-up">▲</button>
+    <div class="arrow-empty"></div>
+
+    <button class="arrow" id="btn-left">◀</button>
+    <button class="arrow arrow-ok" id="btn-ok">●</button>
+    <button class="arrow" id="btn-right">▶</button>
+
+    <div class="arrow-empty"></div>
+    <button class="arrow" id="btn-down">▼</button>
+    <div class="arrow-empty"></div>
+  </div>
+
+<script>
+  const COLS = 21, ROWS = 18, CELL = 10;
+  const C0 = '#0f380f', C1 = '#306230';
+
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  const overlay   = document.getElementById('overlay');
+  const hudScore  = document.getElementById('hud-score');
+
+  let snake, dir, nextDir, food, score, interval, running = false;
+
+  // ── Draw ──────────────────────────────────────────────────
+  function drawGrid() {
+    ctx.fillStyle = '#8bac0f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = C1;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        ctx.fillRect(c * CELL + 4, r * CELL + 4, 2, 2);
+  }
+
+  function drawCell(x, y) {
+    ctx.fillStyle = C0;
+    ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+  }
+
+  function drawFood(x, y) {
+    ctx.fillStyle = C0;
+    ctx.fillRect(x * CELL + 2, y * CELL + 3, CELL - 4, CELL - 4);
+    ctx.fillRect(x * CELL + 3, y * CELL + 2, CELL - 6, 1);
+    ctx.fillRect(x * CELL + 4, y * CELL + 1, 1, 1);
+  }
+
+  function render() {
+    drawGrid();
+    snake.forEach(seg => drawCell(seg.x, seg.y));
+    // Eyes on head
+    const h = snake[0];
+    ctx.fillStyle = '#8bac0f';
+    if (dir.x === 1)  { ctx.fillRect(h.x*CELL+7, h.y*CELL+2, 1,1); ctx.fillRect(h.x*CELL+7, h.y*CELL+6, 1,1); }
+    if (dir.x === -1) { ctx.fillRect(h.x*CELL+2, h.y*CELL+2, 1,1); ctx.fillRect(h.x*CELL+2, h.y*CELL+6, 1,1); }
+    if (dir.y === -1) { ctx.fillRect(h.x*CELL+2, h.y*CELL+2, 1,1); ctx.fillRect(h.x*CELL+7, h.y*CELL+2, 1,1); }
+    if (dir.y === 1)  { ctx.fillRect(h.x*CELL+2, h.y*CELL+7, 1,1); ctx.fillRect(h.x*CELL+7, h.y*CELL+7, 1,1); }
+    drawFood(food.x, food.y);
+  }
+
+  // ── Logic ─────────────────────────────────────────────────
+  function placeFood() {
+    let pos;
+    do { pos = { x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS) }; }
+    while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    food = pos;
+  }
+
+  function startGame() {
+    snake   = [{x:10,y:9},{x:9,y:9},{x:8,y:9}];
+    dir     = {x:1, y:0};
+    nextDir = {x:1, y:0};
+    score   = 0;
+    running = true;
+    hudScore.textContent = '00000';
+    overlay.style.display = 'none';
+    placeFood();
+    clearInterval(interval);
+    interval = setInterval(tick, 150);
+    render();
+  }
+
+  function tick() {
+    dir = nextDir;
+    const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) return gameOver();
+    if (snake.some(s => s.x === head.x && s.y === head.y)) return gameOver();
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) {
+      score += 10;
+      hudScore.textContent = String(score).padStart(5, '0');
+      placeFood();
+      if (score % 50 === 0) {
+        clearInterval(interval);
+        interval = setInterval(tick, Math.max(60, 150 - score * 0.5));
+      }
+    } else {
+      snake.pop();
+    }
+    render();
+  }
+
+  function gameOver() {
+    clearInterval(interval);
+    running = false;
+    let f = 0;
+    const flash = setInterval(() => {
+      ctx.fillStyle = f++ % 2 === 0 ? C0 : '#8bac0f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (f >= 6) {
+        clearInterval(flash);
+        render();
+        overlay.innerHTML = `<div class="title">GAME OVER</div>
+          <div class="score-final">SCORE: ${score}</div>
+          <div class="sub" style="margin-top:8px">Tap ● to retry</div>`;
+        overlay.style.display = 'flex';
+      }
+    }, 100);
+  }
+
+  // ── Controls ──────────────────────────────────────────────
+  function setDir(d) {
+    if (d.x !== 0 && d.x === -dir.x) return;
+    if (d.y !== 0 && d.y === -dir.y) return;
+    nextDir = d;
+  }
+
+  document.addEventListener('keydown', e => {
+    const map = { ArrowUp:{x:0,y:-1}, ArrowDown:{x:0,y:1}, ArrowLeft:{x:-1,y:0}, ArrowRight:{x:1,y:0} };
+    if (map[e.key]) { e.preventDefault(); if (running) setDir(map[e.key]); }
+    if ((e.key === 'Enter' || e.key === ' ') && !running) startGame();
+  });
+
+  function arrowBtn(id, action) {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      el.classList.add('pressed');
+      action();
+    });
+    el.addEventListener('pointerup',    () => el.classList.remove('pressed'));
+    el.addEventListener('pointerleave', () => el.classList.remove('pressed'));
+    el.addEventListener('pointercancel',() => el.classList.remove('pressed'));
+  }
+
+  arrowBtn('btn-up',    () => { if (running) setDir({x:0,y:-1}); });
+  arrowBtn('btn-down',  () => { if (running) setDir({x:0,y:1}); });
+  arrowBtn('btn-left',  () => { if (running) setDir({x:-1,y:0}); });
+  arrowBtn('btn-right', () => { if (running) setDir({x:1,y:0}); });
+  arrowBtn('btn-ok',    () => { if (!running) startGame(); });
+
+  // ── Init ──────────────────────────────────────────────────
+  drawGrid();
+  overlay.style.display = 'flex';
+</script>
+</body>
+</html>
