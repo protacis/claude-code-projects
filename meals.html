@@ -813,11 +813,45 @@
   }
 
   const monday = getMonday();
+
+  // ── Persistence ─────────────────────────────────────────────
+  // Saves the week's chosen meals to localStorage so a refresh keeps them.
+  // Stored as meal indices keyed by the week's Monday; a new week starts fresh.
+  const STORAGE_KEY = 'meals.weekplan';
+  function weekKey(d) { return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+
+  function loadPlan() {
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!data || data.week !== weekKey(monday) || !Array.isArray(data.days) || data.days.length !== 7) return null;
+      return data.days;
+    } catch (e) { return null; }
+  }
+
+  function savePlan() {
+    try {
+      const days = state.map(day => ({
+        breakfast: MEALS.breakfast.indexOf(day.meals.breakfast),
+        lunch:     MEALS.lunch.indexOf(day.meals.lunch),
+        dinner:    MEALS.dinner.indexOf(day.meals.dinner),
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ week: weekKey(monday), days }));
+    } catch (e) {}
+  }
+
+  const savedPlan = loadPlan();
   const state = DAYS.map((name, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
-    return { name, date, meals: { breakfast: pick(MEALS.breakfast), lunch: pick(MEALS.lunch), dinner: pick(MEALS.dinner) } };
+    const saved = savedPlan && savedPlan[i];
+    const mealFor = type => {
+      const idx = saved && saved[type];
+      return Number.isInteger(idx) && MEALS[type][idx] ? MEALS[type][idx] : pick(MEALS[type]);
+    };
+    return { name, date, meals: { breakfast: mealFor('breakfast'), lunch: mealFor('lunch'), dinner: mealFor('dinner') } };
   });
+  // Persist the initial plan so the first random week survives a refresh.
+  savePlan();
 
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
@@ -886,6 +920,7 @@
     const sel = cards[activeDayIdx].querySelector(`.meal-row[data-type="${activeType}"] .meal-select`);
     if (sel) sel.value = MEALS[activeType].indexOf(next);
     refreshMacros(activeDayIdx);
+    savePlan();
   });
 
   // ── Render ──────────────────────────────────────────────────
@@ -924,6 +959,7 @@
         select.addEventListener('change', e => {
           state[di].meals[type] = MEALS[type][parseInt(e.target.value)];
           refreshMacros(di);
+          savePlan();
         });
 
         const icon    = document.createElement('div');
@@ -956,6 +992,7 @@
           select.value = MEALS[type].indexOf(next);
           select.animate([{opacity:0},{opacity:1}],{duration:200});
           refreshMacros(di);
+          savePlan();
         });
 
         row.appendChild(icon);
@@ -991,6 +1028,7 @@
       day.meals.dinner    = pick(MEALS.dinner);
     });
     render();
+    savePlan();
   });
 
   // ── Macro refresh ───────────────────────────────────────────

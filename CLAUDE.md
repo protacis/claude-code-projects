@@ -74,6 +74,6 @@ Commit rules:
 
 ## Key constraints
 
-- **No persistence** — state is in-memory only; refreshing resets to random meals. `localStorage` has not been added yet.
+- **Persistence** — the week's chosen meals are saved to `localStorage` (key `meals.weekplan`) as meal indices keyed by the week's Monday. `loadPlan()` restores them on startup; `savePlan()` must be called after any meal change (dropdown, shuffle button, modal shuffle, shuffle-all). A new week (different Monday) starts fresh with random meals.
 - **All fonts** load from Google Fonts (`DM Serif Display` + `DM Sans`). Use `<link rel="preconnect">` + `<link rel="stylesheet">` — not `@import` inside `<style>`, which blocks Safari rendering.
 - **Mobile layout**: the weekly grid scrolls horizontally (`overflow-x: auto`, `scroll-snap-type: x proximity`); each card is `minmax(260px, 1fr)`. The tab bar uses `env(safe-area-inset-bottom)` for iPhone home-bar clearance.
