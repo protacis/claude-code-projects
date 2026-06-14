@@ -57,6 +57,21 @@ state[i] = { name, date, meals: { breakfast: <meal obj>, lunch: <meal obj>, dinn
 --p-color (protein teal), --c-color (carbs amber), --f-color (fat coral)
 ```
 
+## Git workflow
+
+After every meaningful change, commit and push immediately so no work is ever lost:
+
+```bash
+git add <file>
+git commit -m "Short present-tense description of what changed"
+git push
+```
+
+Commit rules:
+- One logical change per commit — don't bundle unrelated edits
+- Message format: `<verb> <what>` e.g. `Fix macro totals not updating on dropdown change`
+- Push to `origin/master` after every commit (remote: https://github.com/protacis/claude-code-projects)
+
 ## Key constraints
 
 - **No persistence** — state is in-memory only; refreshing resets to random meals. `localStorage` has not been added yet.
