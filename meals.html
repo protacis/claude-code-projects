@@ -813,10 +813,40 @@
   }
 
   const monday = getMonday();
+
+  const STORAGE_KEY = 'meals-planner-v1';
+
+  function saveState() {
+    const weekKey = monday.toISOString().slice(0, 10);
+    const data = {
+      weekKey,
+      days: state.map(day => ({
+        breakfast: MEALS.breakfast.indexOf(day.meals.breakfast),
+        lunch:     MEALS.lunch.indexOf(day.meals.lunch),
+        dinner:    MEALS.dinner.indexOf(day.meals.dinner),
+      }))
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (data.weekKey !== monday.toISOString().slice(0, 10)) return null;
+      return data.days;
+    } catch(e) { return null; }
+  }
+
+  const saved = loadState();
   const state = DAYS.map((name, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
-    return { name, date, meals: { breakfast: pick(MEALS.breakfast), lunch: pick(MEALS.lunch), dinner: pick(MEALS.dinner) } };
+    const meals = saved
+      ? { breakfast: MEALS.breakfast[saved[i].breakfast], lunch: MEALS.lunch[saved[i].lunch], dinner: MEALS.dinner[saved[i].dinner] }
+      : { breakfast: pick(MEALS.breakfast), lunch: pick(MEALS.lunch), dinner: pick(MEALS.dinner) };
+    return { name, date, meals };
   });
 
   const sunday = new Date(monday);
@@ -886,6 +916,7 @@
     const sel = cards[activeDayIdx].querySelector(`.meal-row[data-type="${activeType}"] .meal-select`);
     if (sel) sel.value = MEALS[activeType].indexOf(next);
     refreshMacros(activeDayIdx);
+    saveState();
   });
 
   // ── Render ──────────────────────────────────────────────────
@@ -924,6 +955,7 @@
         select.addEventListener('change', e => {
           state[di].meals[type] = MEALS[type][parseInt(e.target.value)];
           refreshMacros(di);
+          saveState();
         });
 
         const icon    = document.createElement('div');
@@ -956,6 +988,7 @@
           select.value = MEALS[type].indexOf(next);
           select.animate([{opacity:0},{opacity:1}],{duration:200});
           refreshMacros(di);
+          saveState();
         });
 
         row.appendChild(icon);
@@ -991,6 +1024,7 @@
       day.meals.dinner    = pick(MEALS.dinner);
     });
     render();
+    saveState();
   });
 
   // ── Macro refresh ───────────────────────────────────────────
