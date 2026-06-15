@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Ninja Creami Recipes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f4f1eb;
+      --card:     #ffffff;
+      --accent:   #6b5b95;
+      --accent2:  #54487a;
+      --text:     #1a1a1a;
+      --sub:      #999;
+      --border:   #ede9e1;
+      --tag-bg:   #efecf6;
+      --tag-text: #6b5b95;
+      --p-color:  #4c9e8a;
+      --c-color:  #e8a030;
+      --f-color:  #d96b6b;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 30px 24px 22px;
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.7rem, 6vw, 2.4rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--sub);
+      margin-top: 7px;
+      font-weight: 300;
+    }
+
+    /* ── Category filter ── */
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px;
+    }
+    .filter-btn {
+      background: transparent;
+      color: var(--sub);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 7px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .filter-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Grid ── */
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      padding: 22px 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── Recipe card ── */
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover  { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.07); }
+    .card:active { transform: translateY(0); }
+
+    .card-emoji {
+      font-size: 2.6rem;
+      padding: 22px 18px 6px;
+      line-height: 1;
+    }
+
+    .card-body { padding: 4px 18px 18px; }
+
+    .card-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.28rem;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-size: 0.66rem;
+      font-weight: 500;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .card-cals {
+      font-size: 0.78rem;
+      color: var(--sub);
+      margin-top: 10px;
+      font-weight: 300;
+    }
+
+    /* ── Macro bar ── */
+    .macros {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .macro { text-align: left; }
+    .macro .v { font-size: 0.92rem; font-weight: 500; }
+    .macro .l { font-size: 0.62rem; color: var(--sub); text-transform: uppercase; letter-spacing: 0.05em; }
+    .macro.p .v { color: var(--p-color); }
+    .macro.c .v { color: var(--c-color); }
+    .macro.f .v { color: var(--f-color); }
+
+    /* ── Modal ── */
+    #scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(26,26,26,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      z-index: 50;
+    }
+    #scrim.open { opacity: 1; pointer-events: auto; }
+
+    #modal {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      max-width: 560px;
+      margin: 0 auto;
+      max-height: 88vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+      z-index: 51;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
+    #modal.open { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 100px;
+      margin: 12px auto 4px;
+    }
+
+    .modal-head {
+      padding: 14px 26px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-emoji { font-size: 2.4rem; line-height: 1; }
+    .modal-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.7rem;
+      font-weight: 400;
+      line-height: 1.1;
+      margin-top: 8px;
+      letter-spacing: -0.01em;
+    }
+    .modal-tag {
+      display: inline-block;
+      font-size: 0.66rem;
+      font-weight: 500;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .modal-macros {
+      display: flex;
+      gap: 22px;
+      padding: 18px 26px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-macros .macro .v { font-size: 1.15rem; }
+
+    .modal-section { padding: 20px 26px 4px; }
+    .modal-section h3 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--sub);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .ing-list { list-style: none; }
+    .ing-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.92rem;
+      font-weight: 300;
+      display: flex;
+      gap: 10px;
+    }
+    .ing-list li::before { content: "•"; color: var(--accent); }
+    .ing-list li:last-child { border-bottom: none; }
+
+    .step-list { list-style: none; counter-reset: step; }
+    .step-list li {
+      padding: 10px 0;
+      font-size: 0.92rem;
+      font-weight: 300;
+      line-height: 1.5;
+      display: flex;
+      gap: 12px;
+      counter-increment: step;
+    }
+    .step-list li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .note {
+      margin: 14px 26px 0;
+      padding: 14px 16px;
+      background: var(--tag-bg);
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 300;
+      line-height: 1.5;
+      color: var(--accent2);
+    }
+    .note b { font-weight: 500; }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--sub);
+      font-weight: 300;
+      padding: 60px 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ninja Creami</h1>
+    <div class="subtitle">Spin-anytime recipes for the freezer pint</div>
+    <div class="filters" id="filters"></div>
+  </header>
+
+  <main id="grid"></main>
+
+  <div id="scrim"></div>
+  <div id="modal"></div>
+
+  <script>
+    // ── Recipe data ──
+    // Each recipe makes one standard Creami pint. Macros are for the whole pint.
+    const RECIPES = [
+      {
+        name: "Vanilla Protein Ice Cream",
+        emoji: "🍦",
+        cat: "Protein",
+        cals: 320, protein: 50, carbs: 22, fat: 5,
+        ingredients: [
+          "1 cup unsweetened almond milk",
+          "1 cup fat-free milk",
+          "1 scoop vanilla protein powder",
+          "1 tbsp sugar-free instant pudding mix",
+          "1 tsp vanilla extract",
+          "2 tbsp granulated sweetener"
+        ],
+        steps: [
+          "Whisk all ingredients in the pint until fully dissolved and smooth.",
+          "Freeze level on a flat shelf for 24 hours.",
+          "Spin on the Lite Ice Cream setting.",
+          "If powdery, add a splash of milk and re-spin once."
+        ],
+        note: "The pudding mix is the secret to a creamy, scoopable texture without extra fat."
+      },
+      {
+        name: "Chocolate Peanut Butter",
+        emoji: "🍫",
+        cat: "Protein",
+        cals: 410, protein: 48, carbs: 26, fat: 12,
+        ingredients: [
+          "1.5 cups fat-free milk",
+          "1 scoop chocolate protein powder",
+          "1 tbsp cocoa powder",
+          "1 tbsp powdered peanut butter",
+          "2 tbsp granulated sweetener",
+          "Pinch of salt"
+        ],
+        steps: [
+          "Blend everything until no lumps remain.",
+          "Pour into the pint and freeze 24 hours.",
+          "Spin on Lite Ice Cream.",
+          "Add a mix-in well of real peanut butter chips and run Mix-in."
+        ],
+        note: "Powdered peanut butter keeps fat low while delivering full flavour."
+      },
+      {
+        name: "Classic Vanilla Bean",
+        emoji: "🍨",
+        cat: "Ice Cream",
+        cals: 1180, protein: 18, carbs: 96, fat: 78,
+        ingredients: [
+          "1 cup heavy cream",
+          "1 cup whole milk",
+          "1/2 cup granulated sugar",
+          "1 tbsp vanilla bean paste",
+          "3 tbsp cream cheese, softened"
+        ],
+        steps: [
+          "Warm milk and sugar until sugar dissolves, then cool.",
+          "Whisk in cream, vanilla paste, and cream cheese until smooth.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on the Ice Cream setting."
+        ],
+        note: "A spoon of cream cheese smooths the texture and tames iciness."
+      },
+      {
+        name: "Strawberry Sorbet",
+        emoji: "🍓",
+        cat: "Sorbet",
+        cals: 240, protein: 3, carbs: 60, fat: 1,
+        ingredients: [
+          "2 cups frozen strawberries, thawed",
+          "1/3 cup simple syrup",
+          "1 tbsp lemon juice",
+          "1/4 cup water"
+        ],
+        steps: [
+          "Purée strawberries with syrup, lemon, and water.",
+          "Strain if you prefer a seedless finish.",
+          "Pour into the pint and freeze flat for 24 hours.",
+          "Spin on the Sorbet setting."
+        ],
+        note: "Any ripe fruit works — keep total liquid to the pint max line."
+      },
+      {
+        name: "Mango Lime Sorbet",
+        emoji: "🥭",
+        cat: "Sorbet",
+        cals: 260, protein: 2, carbs: 66, fat: 1,
+        ingredients: [
+          "2 cups frozen mango chunks, thawed",
+          "1/3 cup simple syrup",
+          "2 tbsp lime juice",
+          "Zest of 1 lime"
+        ],
+        steps: [
+          "Blend mango, syrup, lime juice, and zest until silky.",
+          "Pour into the pint, leaving room below the max line.",
+          "Freeze 24 hours.",
+          "Spin on Sorbet, then re-spin if needed."
+        ],
+        note: "Add a pinch of chili powder for a spicy mango twist."
+      },
+      {
+        name: "Cold Brew Coffee",
+        emoji: "☕",
+        cat: "Ice Cream",
+        cals: 980, protein: 14, carbs: 84, fat: 64,
+        ingredients: [
+          "3/4 cup heavy cream",
+          "3/4 cup whole milk",
+          "1/2 cup strong cold brew concentrate",
+          "1/3 cup brown sugar",
+          "1 tsp vanilla extract"
+        ],
+        steps: [
+          "Stir sugar into the cold brew until dissolved.",
+          "Whisk in cream, milk, and vanilla.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on Ice Cream; fold in chocolate-covered espresso beans as a mix-in."
+        ],
+        note: "Use concentrate, not regular coffee, so it doesn't freeze too hard."
+      },
+      {
+        name: "Mint Chocolate Chip",
+        emoji: "🌿",
+        cat: "Ice Cream",
+        cals: 1120, protein: 17, carbs: 102, fat: 72,
+        ingredients: [
+          "1 cup heavy cream",
+          "1 cup whole milk",
+          "1/2 cup sugar",
+          "1/2 tsp peppermint extract",
+          "2 drops green food colouring (optional)",
+          "1/4 cup mini chocolate chips (for mix-in)"
+        ],
+        steps: [
+          "Whisk cream, milk, sugar, peppermint, and colouring.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on Ice Cream.",
+          "Make a mix-in well, add chocolate chips, run Mix-in."
+        ],
+        note: "Go light on peppermint — a little goes a very long way."
+      },
+      {
+        name: "Banana Nice Cream",
+        emoji: "🍌",
+        cat: "Vegan",
+        cals: 380, protein: 6, carbs: 78, fat: 6,
+        ingredients: [
+          "2 ripe bananas, frozen then thawed",
+          "3/4 cup oat milk",
+          "1 tbsp maple syrup",
+          "1/2 tsp vanilla extract",
+          "Pinch of cinnamon"
+        ],
+        steps: [
+          "Blend bananas with oat milk, maple, vanilla, and cinnamon.",
+          "Pour into the pint and freeze 24 hours.",
+          "Spin on Lite Ice Cream.",
+          "Re-spin with a splash of oat milk for extra creaminess."
+        ],
+        note: "Naturally sweet and dairy-free — riper bananas mean less added syrup."
+      },
+      {
+        name: "Coconut Piña Colada",
+        emoji: "🥥",
+        cat: "Vegan",
+        cals: 620, protein: 4, carbs: 64, fat: 40,
+        ingredients: [
+          "1 cup full-fat coconut milk",
+          "3/4 cup pineapple juice",
+          "1/2 cup crushed pineapple",
+          "3 tbsp sugar",
+          "1/2 tsp coconut extract"
+        ],
+        steps: [
+          "Whisk coconut milk, juice, sugar, and extract until smooth.",
+          "Stir in the crushed pineapple.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on the Ice Cream setting."
+        ],
+        note: "Full-fat coconut milk is essential for a creamy, non-icy result."
+      },
+      {
+        name: "Cookies & Cream",
+        emoji: "🍪",
+        cat: "Ice Cream",
+        cals: 1260, protein: 20, carbs: 128, fat: 74,
+        ingredients: [
+          "1 cup heavy cream",
+          "1 cup whole milk",
+          "1/2 cup sugar",
+          "1 tsp vanilla extract",
+          "4 chocolate sandwich cookies, crushed (for mix-in)"
+        ],
+        steps: [
+          "Whisk cream, milk, sugar, and vanilla until sugar dissolves.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on Ice Cream.",
+          "Press a well, add crushed cookies, run the Mix-in program."
+        ],
+        note: "Add the cookies only as a mix-in so they stay crunchy."
+      },
+      {
+        name: "Lemon Greek Frozen Yogurt",
+        emoji: "🍋",
+        cat: "Protein",
+        cals: 420, protein: 30, carbs: 56, fat: 6,
+        ingredients: [
+          "1.5 cups plain Greek yogurt",
+          "1/3 cup honey",
+          "3 tbsp lemon juice",
+          "1 tsp lemon zest",
+          "1/4 cup milk"
+        ],
+        steps: [
+          "Whisk yogurt, honey, lemon juice, zest, and milk smooth.",
+          "Pour into the pint and freeze 24 hours.",
+          "Spin on the Lite Ice Cream setting.",
+          "Re-spin for a softer, tangier scoop."
+        ],
+        note: "High-protein and tangy — full-fat yogurt gives the creamiest texture."
+      },
+      {
+        name: "Salted Caramel",
+        emoji: "🧂",
+        cat: "Ice Cream",
+        cals: 1240, protein: 16, carbs: 120, fat: 76,
+        ingredients: [
+          "1 cup heavy cream",
+          "1 cup whole milk",
+          "1/2 cup caramel sauce",
+          "2 tbsp brown sugar",
+          "1/2 tsp sea salt",
+          "1 tsp vanilla extract"
+        ],
+        steps: [
+          "Whisk cream, milk, caramel, sugar, salt, and vanilla.",
+          "Freeze in the pint for 24 hours.",
+          "Spin on Ice Cream.",
+          "Drizzle extra caramel into a mix-in well and run Mix-in."
+        ],
+        note: "Flaky sea salt on top before serving makes it taste store-bought."
+      }
+    ];
+
+    const grid = document.getElementById('grid');
+    const filterBar = document.getElementById('filters');
+    const scrim = document.getElementById('scrim');
+    const modal = document.getElementById('modal');
+
+    const cats = ['All', ...Array.from(new Set(RECIPES.map(r => r.cat)))];
+    let activeCat = 'All';
+
+    function macroRow(r, cls) {
+      return `<div class="macros ${cls}">
+        <div class="macro p"><div class="v">${r.protein}g</div><div class="l">Protein</div></div>
+        <div class="macro c"><div class="v">${r.carbs}g</div><div class="l">Carbs</div></div>
+        <div class="macro f"><div class="v">${r.fat}g</div><div class="l">Fat</div></div>
+      </div>`;
+    }
+
+    function render() {
+      const list = RECIPES.filter(r => activeCat === 'All' || r.cat === activeCat);
+      if (!list.length) {
+        grid.innerHTML = '<div class="empty">No recipes in this category yet.</div>';
+        return;
+      }
+      grid.innerHTML = list.map(r => {
+        const i = RECIPES.indexOf(r);
+        return `<div class="card" data-i="${i}">
+          <div class="card-emoji">${r.emoji}</div>
+          <div class="card-body">
+            <div class="card-name">${r.name}</div>
+            <span class="card-tag">${r.cat}</span>
+            <div class="card-cals">${r.cals} cal · whole pint</div>
+            ${macroRow(r, '')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderFilters() {
+      filterBar.innerHTML = cats.map(c =>
+        `<button class="filter-btn ${c === activeCat ? 'active' : ''}" data-cat="${c}">${c}</button>`
+      ).join('');
+    }
+
+    function openModal(r) {
+      modal.innerHTML = `
+        <div class="modal-handle"></div>
+        <div class="modal-head">
+          <div class="modal-emoji">${r.emoji}</div>
+          <div class="modal-name">${r.name}</div>
+          <span class="modal-tag">${r.cat}</span>
+        </div>
+        <div class="modal-macros">
+          <div class="macro"><div class="v">${r.cals}</div><div class="l">Calories</div></div>
+          <div class="macro p"><div class="v">${r.protein}g</div><div class="l">Protein</div></div>
+          <div class="macro c"><div class="v">${r.carbs}g</div><div class="l">Carbs</div></div>
+          <div class="macro f"><div class="v">${r.fat}g</div><div class="l">Fat</div></div>
+        </div>
+        <div class="modal-section">
+          <h3>Ingredients</h3>
+          <ul class="ing-list">${r.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>
+        </div>
+        <div class="modal-section">
+          <h3>Method</h3>
+          <ol class="step-list">${r.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+        </div>
+        ${r.note ? `<div class="note"><b>Tip:</b> ${r.note}</div>` : ''}
+      `;
+      scrim.classList.add('open');
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      scrim.classList.remove('open');
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    grid.addEventListener('click', e => {
+      const card = e.target.closest('.card');
+      if (card) openModal(RECIPES[+card.dataset.i]);
+    });
+
+    filterBar.addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      activeCat = btn.dataset.cat;
+      renderFilters();
+      render();
+    });
+
+    scrim.addEventListener('click', closeModal);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    renderFilters();
+    render();
+  </script>
+</body>
+</html>
