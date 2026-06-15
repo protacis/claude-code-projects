@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     :root{
@@ -173,6 +175,21 @@
     .today-tag{background:color-mix(in srgb,var(--accent) 15%,transparent);
       color:var(--accent);font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;}
 
+    /* LOADING OVERLAY */
+    .loading{position:fixed;inset:0;z-index:500;background:var(--bg);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      transition:opacity .3s;}
+    .loading.done{opacity:0;pointer-events:none;}
+    .spinner{width:36px;height:36px;border:3px solid var(--border);
+      border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading p{font-size:14px;color:var(--sub);}
+
+    /* SYNC DOT */
+    .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);
+      display:inline-block;margin-left:8px;opacity:0;transition:opacity .4s;}
+    .sync-dot.show{opacity:1;}
+
     /* TOAST */
     .toast{position:fixed;bottom:calc(88px + env(safe-area-inset-bottom));left:50%;
       transform:translateX(-50%) translateY(10px);background:var(--card2);
@@ -184,9 +201,14 @@
 </head>
 <body>
 
+<div class="loading" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p>Loading your logs…</p>
+</div>
+
 <div class="topbar">
   <button class="back-btn" id="backBtn" onclick="goBack()">&#8592;</button>
-  <h1 id="topTitle">GymLog</h1>
+  <h1 id="topTitle">GymLog<span class="sync-dot" id="syncDot"></span></h1>
 </div>
 
 <div id="app">
@@ -295,6 +317,22 @@ const EXERCISES = {
 };
 
 // ─────────────────────────────────────────
+// FIREBASE
+// ─────────────────────────────────────────
+
+firebase.initializeApp({
+  apiKey:            "AIzaSyCveadLrBWORDQviTxGmTlysft0U8Rz9Mw",
+  authDomain:        "gym-project-cd964.firebaseapp.com",
+  databaseURL:       "https://gym-project-cd964-default-rtdb.firebaseio.com",
+  projectId:         "gym-project-cd964",
+  storageBucket:     "gym-project-cd964.firebasestorage.app",
+  messagingSenderId: "152388819712",
+  appId:             "1:152388819712:web:2a71f2c378825097b371e5",
+});
+
+const db = firebase.database();
+
+// ─────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────
 
@@ -304,13 +342,25 @@ let currentBP   = null;
 let currentEx   = null;
 // session: { exId: [{weight, reps, ts}] }  — unsaved sets for this gym visit
 let session     = {};
+let logsCache   = {};         // in-memory mirror of Firebase data
 
 function todayKey() { return new Date().toISOString().slice(0,10); }
-function loadLogs() {
-  try { return JSON.parse(localStorage.getItem('gymlog_v2') || '{}'); }
-  catch { return {}; }
+
+function loadLogs() { return logsCache; }
+
+function saveLogs(l) {
+  logsCache = l;
+  localStorage.setItem('gymlog_v2', JSON.stringify(l));
+  // Push to Firebase, show green sync dot on success
+  db.ref('logs').set(l).then(() => flashSync()).catch(err => console.warn('Firebase save failed:', err));
 }
-function saveLogs(l) { localStorage.setItem('gymlog_v2', JSON.stringify(l)); }
+
+function flashSync() {
+  const dot = document.getElementById('syncDot');
+  if (!dot) return;
+  dot.classList.add('show');
+  setTimeout(() => dot.classList.remove('show'), 1500);
+}
 
 // ─────────────────────────────────────────
 // HELPERS
@@ -779,7 +829,28 @@ function showToast(msg) {
 // INIT
 // ─────────────────────────────────────────
 
-renderHome();
+async function initApp() {
+  // Seed from localStorage immediately so the app isn't blank while fetching
+  try { logsCache = JSON.parse(localStorage.getItem('gymlog_v2') || '{}'); } catch {}
+
+  try {
+    const snap = await db.ref('logs').once('value');
+    if (snap.exists()) {
+      logsCache = snap.val() || {};
+    } else if (Object.keys(logsCache).length > 0) {
+      // First time on Firebase — upload existing localStorage data
+      await db.ref('logs').set(logsCache);
+    }
+    localStorage.setItem('gymlog_v2', JSON.stringify(logsCache));
+  } catch (err) {
+    console.warn('Firebase load failed, using localStorage cache:', err);
+  }
+
+  document.getElementById('loadingOverlay').classList.add('done');
+  renderHome();
+}
+
+initApp();
 </script>
 </body>
 </html>
