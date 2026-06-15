@@ -830,11 +830,13 @@ function showToast(msg) {
 // ─────────────────────────────────────────
 
 async function initApp() {
-  // Seed from localStorage immediately so the app isn't blank while fetching
+  // Seed from localStorage immediately — app is usable even if Firebase is slow
   try { logsCache = JSON.parse(localStorage.getItem('gymlog_v2') || '{}'); } catch {}
 
   try {
-    const snap = await db.ref('u/f8a3c7e2b4d6/logs').once('value');
+    const fbFetch = db.ref('u/f8a3c7e2b4d6/logs').once('value');
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000));
+    const snap = await Promise.race([fbFetch, timeout]);
     if (snap.exists()) {
       logsCache = snap.val() || {};
     } else if (Object.keys(logsCache).length > 0) {
