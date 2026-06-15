@@ -352,7 +352,7 @@ function saveLogs(l) {
   logsCache = l;
   localStorage.setItem('gymlog_v2', JSON.stringify(l));
   // Push to Firebase, show green sync dot on success
-  db.ref('logs').set(l).then(() => flashSync()).catch(err => console.warn('Firebase save failed:', err));
+  db.ref('u/f8a3c7e2b4d6/logs').set(l).then(() => flashSync()).catch(err => console.warn('Firebase save failed:', err));
 }
 
 function flashSync() {
@@ -834,12 +834,12 @@ async function initApp() {
   try { logsCache = JSON.parse(localStorage.getItem('gymlog_v2') || '{}'); } catch {}
 
   try {
-    const snap = await db.ref('logs').once('value');
+    const snap = await db.ref('u/f8a3c7e2b4d6/logs').once('value');
     if (snap.exists()) {
       logsCache = snap.val() || {};
     } else if (Object.keys(logsCache).length > 0) {
       // First time on Firebase — upload existing localStorage data
-      await db.ref('logs').set(logsCache);
+      await db.ref('u/f8a3c7e2b4d6/logs').set(logsCache);
     }
     localStorage.setItem('gymlog_v2', JSON.stringify(logsCache));
   } catch (err) {
