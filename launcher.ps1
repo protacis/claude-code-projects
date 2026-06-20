@@ -300,6 +300,7 @@ $btnApply.Add_Click({
         $lblDocName.ForeColor = $clrRed
         $lblDocName.Text = "$($script:doc.DisplayName)  —  $errors σφάλματα"
     } else {
+        try { $script:doc.Update() } catch {}
         $lblDocName.ForeColor = [Drawing.Color]::FromArgb(100,200,120)
         $lblDocName.Text = "$($script:doc.DisplayName)  —  $updated αλλαγές εφαρμόστηκαν"
     }
