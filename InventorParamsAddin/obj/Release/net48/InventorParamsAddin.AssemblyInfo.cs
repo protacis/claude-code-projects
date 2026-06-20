@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("InventorParamsAddin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+831b9c8d4e3f875bc3899088a024031d856b5f6a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd53370ff5e208ea4c2727f68ab5a8699ff593e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("InventorParamsAddin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("InventorParamsAddin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
