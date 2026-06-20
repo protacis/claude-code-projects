@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>App Launcher</title>
+  <HTA:APPLICATION
+    APPLICATIONNAME="App Launcher"
+    BORDER="thin"
+    CAPTION="yes"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="yes"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="yes"
+    WINDOWSTATE="normal"
+  />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1a2e; color: #e0e0e0;
+      height: 100vh; display: flex; flex-direction: column;
+    }
+
+    #tab-bar { display: flex; border-bottom: 1px solid #2a2a4a; background: #12112a; flex-shrink: 0; }
+    .tab { padding: 12px 24px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab:hover { color: #aaa; }
+    .tab.active { color: #fff; border-bottom-color: #4a6fa5; }
+
+    .view { display: none; flex: 1; overflow-y: auto; }
+    .view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #view-params.active { align-items: stretch; justify-content: flex-start; padding: 20px; }
+
+    h1 { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 40px; }
+
+    .grid { display: flex; flex-direction: column; gap: 14px; width: 320px; }
+    .app-btn {
+      display: flex; align-items: center; gap: 16px;
+      background: #16213e; border: 1px solid #2a2a4a;
+      border-radius: 12px; padding: 18px 22px; cursor: pointer;
+    }
+    .app-btn:hover { background: #1f2d5a; border-color: #4a6fa5; }
+
+    .icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .icon-inventor { background: #ff6b00; }
+    .icon-autocad  { background: #c00; }
+
+    .info { flex: 1; text-align: left; }
+    .info .name { font-size: 15px; font-weight: 600; color: #fff; }
+    .info .sub  { font-size: 12px; color: #666; margin-top: 2px; }
+    .arrow { color: #444; font-size: 18px; }
+
+    #status { margin-top: 28px; font-size: 12px; color: #555; height: 16px; }
+
+    /* Overlay */
+    #overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); }
+    #picker {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: #16213e; border: 1px solid #2a2a4a;
+      border-radius: 14px; padding: 24px; width: 340px;
+    }
+    #picker h2 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    #picker .lbl { font-size: 12px; color: #555; margin-bottom: 18px; }
+    #file-list { display: flex; flex-direction: column; gap: 8px; }
+    .file-item {
+      display: flex; align-items: center; gap: 12px;
+      background: #1a1a2e; border: 1px solid #2a2a4a;
+      border-radius: 8px; padding: 12px 14px; cursor: pointer;
+    }
+    .file-item:hover { background: #1f2d5a; border-color: #4a6fa5; }
+    .ext-badge { font-size: 10px; font-weight: 700; background: #ff6b00; color: #fff; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+    .fname { font-size: 13px; color: #ddd; }
+    #btn-cancel { margin-top: 14px; width: 100%; padding: 10px; background: transparent; border: 1px solid #2a2a4a; border-radius: 8px; color: #666; font-size: 13px; cursor: pointer; }
+    #btn-cancel:hover { background: #1a1a2e; color: #aaa; }
+
+    /* Params */
+    #params-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-shrink: 0; }
+    #doc-name { font-size: 14px; font-weight: 600; color: #fff; flex: 1; }
+    #doc-type { font-size: 11px; color: #555; background: #16213e; border: 1px solid #2a2a4a; border-radius: 6px; padding: 3px 8px; }
+    #btn-refresh { padding: 7px 16px; background: #1f2d5a; border: 1px solid #4a6fa5; border-radius: 8px; color: #aac4ff; font-size: 12px; cursor: pointer; }
+    #btn-refresh:hover { background: #253666; }
+    #params-msg { font-size: 13px; color: #555; text-align: center; padding: 40px 20px; }
+    #param-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    #param-table thead tr { background: #12112a; border-bottom: 1px solid #2a2a4a; }
+    #param-table thead th { padding: 9px 12px; text-align: left; color: #555; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+    #param-table tbody tr { border-bottom: 1px solid #1e1e38; }
+    #param-table tbody tr:hover { background: #16213e; }
+    #param-table tbody td { padding: 9px 12px; color: #ccc; }
+    .p-name { color: #fff !important; font-weight: 500; }
+    .p-val  { color: #7ec8e3 !important; font-family: monospace; }
+    .p-unit { color: #888 !important; }
+    .p-expr { color: #a0c878 !important; font-family: monospace; font-size: 12px; }
+    .badge-user  { background: #1f3a1f; color: #6bcf6b; font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+    .badge-model { background: #1a2a3a; color: #6ba0cf; font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+    .badge-ref   { background: #2a2a1a; color: #cfcf6b; font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <div id="tab-bar">
+    <div class="tab active" id="tab-launcher">&#128640; Launcher</div>
+    <div class="tab" id="tab-params">&#128196; Παράμετροι</div>
+  </div>
+
+  <div id="view-launcher" class="view active">
+    <h1>App Launcher</h1>
+    <p class="subtitle">Επέλεξε εφαρμογή για εκκίνηση</p>
+    <div class="grid">
+      <div class="app-btn" id="btn-inventor">
+        <div class="icon icon-inventor">&#9881;</div>
+        <div class="info">
+          <div class="name">Autodesk Inventor 2026</div>
+          <div class="sub">Professional CAD</div>
+        </div>
+        <div class="arrow">&#8250;</div>
+      </div>
+      <div class="app-btn" id="btn-autocad">
+        <div class="icon icon-autocad">&#9998;</div>
+        <div class="info">
+          <div class="name">AutoCAD 2025</div>
+          <div class="sub">2D &amp; 3D Design</div>
+        </div>
+        <div class="arrow">&#8250;</div>
+      </div>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div id="view-params" class="view">
+    <div id="params-toolbar">
+      <div id="doc-name">—</div>
+      <span id="doc-type">—</span>
+      <button id="btn-refresh">&#8635; Ανανέωση</button>
+    </div>
+    <div id="params-content">
+      <div id="params-msg">Πάτα Ανανέωση για να διαβάσεις τις παραμέτρους από το ανοιχτό σχέδιο στο Inventor.</div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div id="picker">
+      <h2>Επέλεξε αρχείο</h2>
+      <div class="lbl">3d models</div>
+      <div id="file-list"></div>
+      <button id="btn-cancel">Ακύρωση</button>
+    </div>
+  </div>
+
+  <!-- Wire events with FOR/EVENT — most reliable HTA pattern -->
+  <script language="vbscript" for="tab-launcher" event="onclick">
+    document.getElementById("tab-launcher").className  = "tab active"
+    document.getElementById("tab-params").className    = "tab"
+    document.getElementById("view-launcher").className = "view active"
+    document.getElementById("view-params").className   = "view"
+  </script>
+
+  <script language="vbscript" for="tab-params" event="onclick">
+    document.getElementById("tab-launcher").className  = "tab"
+    document.getElementById("tab-params").className    = "tab active"
+    document.getElementById("view-launcher").className = "view"
+    document.getElementById("view-params").className   = "view active"
+    Call ReadParams()
+  </script>
+
+  <script language="vbscript" for="btn-inventor" event="onclick">
+    Call ShowFilePicker()
+  </script>
+
+  <script language="vbscript" for="btn-autocad" event="onclick">
+    Call LaunchAutocad()
+  </script>
+
+  <script language="vbscript" for="btn-cancel" event="onclick">
+    Call ClosePicker()
+  </script>
+
+  <script language="vbscript" for="btn-refresh" event="onclick">
+    Call ReadParams()
+  </script>
+
+  <script language="vbscript">
+
+    Const MODELS_FOLDER = "C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\3d models"
+    Const INVENTOR_EXE  = "C:\Program Files\Autodesk\Inventor 2026\Bin\Inventor.exe"
+    Const AUTOCAD_EXE   = "C:\Program Files\Autodesk\AutoCAD 2025\acad.exe"
+
+    Sub ShowFilePicker()
+      Dim fso, folder, f, div, list, ext
+      Set fso = CreateObject("Scripting.FileSystemObject")
+      If Not fso.FolderExists(MODELS_FOLDER) Then
+        SetStatus "Σφάλμα: δεν βρέθηκε ο φάκελος 3d models", "#e05252"
+        Exit Sub
+      End If
+      Set list = document.getElementById("file-list")
+      list.innerHTML = ""
+      Set folder = fso.GetFolder(MODELS_FOLDER)
+      Dim count : count = 0
+      For Each f In folder.Files
+        ext = UCase(fso.GetExtensionName(f.Name))
+        Set div = document.createElement("div")
+        div.className = "file-item"
+        div.innerHTML = "<span class='ext-badge'>" & ext & "</span><span class='fname'>" & f.Name & "</span>"
+        div.setAttribute "data-path", f.Path
+        div.onclick = GetRef("OpenFileFromItem")
+        list.appendChild(div)
+        count = count + 1
+      Next
+      If count = 0 Then
+        list.innerHTML = "<div style='color:#555;font-size:13px;padding:16px;text-align:center'>Δεν βρέθηκαν αρχεία</div>"
+      End If
+      document.getElementById("overlay").style.display = "block"
+    End Sub
+
+    Sub OpenFileFromItem()
+      Dim el, path
+      Set el = window.event.srcElement
+      path = el.getAttribute("data-path")
+      If IsNull(path) Or path = "" Then
+        path = el.parentElement.getAttribute("data-path")
+      End If
+      Call ClosePicker()
+      If Not IsNull(path) And path <> "" Then
+        Call RunApp(INVENTOR_EXE, path)
+      End If
+    End Sub
+
+    Sub ClosePicker()
+      document.getElementById("overlay").style.display = "none"
+    End Sub
+
+    Sub LaunchAutocad()
+      Call RunApp(AUTOCAD_EXE, "")
+    End Sub
+
+    Sub RunApp(exePath, filePath)
+      Dim shell, cmd
+      Set shell = CreateObject("WScript.Shell")
+      If filePath <> "" Then
+        cmd = """" & exePath & """ """ & filePath & """"
+      Else
+        cmd = """" & exePath & """"
+      End If
+      On Error Resume Next
+      shell.Run cmd
+      If Err.Number <> 0 Then
+        SetStatus "Σφάλμα: " & Err.Description, "#e05252"
+      Else
+        SetStatus "Εκκίνηση...", "#52a852"
+      End If
+      On Error GoTo 0
+    End Sub
+
+    Sub SetStatus(msg, col)
+      Dim el : Set el = document.getElementById("status")
+      el.innerText = msg
+      el.style.color = col
+    End Sub
+
+    Sub ReadParams()
+      Dim inv, doc, params, p, allParams
+      Dim html, pName, pVal, pUnit, pExpr, pTypeNum
+      Dim paramType, badgeClass, displayVal
+
+      On Error Resume Next
+      Set inv = GetObject(, "Inventor.Application")
+      If Err.Number <> 0 Then
+        document.getElementById("params-content").innerHTML = "<div id='params-msg'>Το Inventor δεν τρέχει.<br><span style='font-size:12px;color:#444'>Άνοιξε πρώτα ένα σχέδιο στο Inventor.</span></div>"
+        document.getElementById("doc-name").innerText = "—"
+        document.getElementById("doc-type").innerText = "—"
+        Err.Clear : On Error GoTo 0 : Exit Sub
+      End If
+
+      Set doc = inv.ActiveDocument
+      If Err.Number <> 0 Then
+        document.getElementById("params-content").innerHTML = "<div id='params-msg'>Δεν υπάρχει ανοιχτό σχέδιο.</div>"
+        Err.Clear : On Error GoTo 0 : Exit Sub
+      End If
+
+      document.getElementById("doc-name").innerText = doc.DisplayName
+
+      Dim docType
+      Select Case doc.DocumentType
+        Case 12290 : docType = "Part (.ipt)"
+        Case 12291 : docType = "Assembly (.iam)"
+        Case 12292 : docType = "Drawing (.idw)"
+        Case Else  : docType = "Document"
+      End Select
+      document.getElementById("doc-type").innerText = docType
+
+      Set params = doc.ComponentDefinition.Parameters
+      If Err.Number <> 0 Then
+        document.getElementById("params-content").innerHTML = "<div id='params-msg'>Δεν υποστηρίζονται παράμετροι για αυτό τον τύπο αρχείου.</div>"
+        Err.Clear : On Error GoTo 0 : Exit Sub
+      End If
+
+      Set allParams = params.ModelParameters
+      html = "<table id='param-table'><thead><tr><th>Όνομα</th><th>Τιμή</th><th>Μονάδα</th><th>Έκφραση</th></tr></thead><tbody>"
+
+      Dim count : count = 0
+      Dim i
+      For i = 1 To allParams.Count
+        Set p = allParams.Item(i)
+        pName = p.Name
+        pUnit = p.Units
+        pExpr = p.Expression
+        displayVal = FormatNumber(p.Value, 4)
+
+        If pUnit = "" Then pUnit = "—"
+        If pExpr = "" Then pExpr = "—"
+
+        html = html & "<tr><td class='p-name'>" & pName & "</td><td class='p-val'>" & displayVal & "</td><td class='p-unit'>" & pUnit & "</td><td class='p-expr'>" & pExpr & "</td></tr>"
+        count = count + 1
+      Next
+
+      html = html & "</tbody></table>"
+
+      If count = 0 Then
+        document.getElementById("params-content").innerHTML = "<div id='params-msg'>Δεν βρέθηκαν παράμετροι.</div>"
+      Else
+        document.getElementById("params-content").innerHTML = html
+      End If
+
+      On Error GoTo 0
+    End Sub
+
+  </script>
+
+</body>
+</html>
