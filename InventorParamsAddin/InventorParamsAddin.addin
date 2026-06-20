@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Addin Type="Standard">
+  <ClassId>{7A3F8D21-C4B6-4E9A-B251-8D3A0F5C7E9B}</ClassId>
+  <ClientId>{7A3F8D21-C4B6-4E9A-B251-8D3A0F5C7E9B}</ClientId>
+  <DisplayName>Key Parameters</DisplayName>
+  <Description>View and edit key parameters of the active document</Description>
+  <Assembly>InventorParamsAddin.dll</Assembly>
+  <LoadOnStartUp>1</LoadOnStartUp>
+  <SupportedSoftwareVersionGreaterThan>25.</SupportedSoftwareVersionGreaterThan>
+</Addin>

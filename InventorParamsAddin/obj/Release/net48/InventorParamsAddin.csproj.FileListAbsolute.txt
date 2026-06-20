@@ -1,0 +1,10 @@
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.csproj.AssemblyReference.cache
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.AssemblyInfoInputs.cache
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.AssemblyInfo.cs
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.csproj.CoreCompileInputs.cache
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.sourcelink.json
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\bin\Release\net48\InventorParamsAddin.dll
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\bin\Release\net48\InventorParamsAddin.pdb
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.dll
+C:\Users\byron\OneDrive\Desktop\ClaudeCodeTest\InventorParamsAddin\obj\Release\net48\InventorParamsAddin.pdb
