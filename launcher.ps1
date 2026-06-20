@@ -15,6 +15,9 @@ $clrSub     = [Drawing.Color]::FromArgb(102,102,102)
 $clrGreen   = [Drawing.Color]::FromArgb(82,168,82)
 $clrRed     = [Drawing.Color]::FromArgb(224,82,82)
 
+$script:inv = $null
+$script:doc = $null
+
 # ── FORM ─────────────────────────────────────────────────────────────
 $form = New-Object System.Windows.Forms.Form
 $form.Text            = "App Launcher"
@@ -88,7 +91,7 @@ $tabParams.Controls.Add($pnlTop)
 
 $btnRefresh = New-Object System.Windows.Forms.Button
 $btnRefresh.Text      = "⟳  Ανανέωση"
-$btnRefresh.Size      = New-Object Drawing.Size(110, 30)
+$btnRefresh.Size      = New-Object Drawing.Size(100, 30)
 $btnRefresh.Location  = New-Object Drawing.Point(0, 7)
 $btnRefresh.BackColor = $clrCard
 $btnRefresh.ForeColor = $clrAccentFg
@@ -97,10 +100,21 @@ $btnRefresh.FlatAppearance.BorderColor = $clrAccent
 $btnRefresh.Cursor    = "Hand"
 $pnlTop.Controls.Add($btnRefresh)
 
+$btnApply = New-Object System.Windows.Forms.Button
+$btnApply.Text      = "✔  Εφαρμογή"
+$btnApply.Size      = New-Object Drawing.Size(108, 30)
+$btnApply.Location  = New-Object Drawing.Point(108, 7)
+$btnApply.BackColor = [Drawing.Color]::FromArgb(22,50,30)
+$btnApply.ForeColor = [Drawing.Color]::FromArgb(100,200,120)
+$btnApply.FlatStyle = "Flat"
+$btnApply.FlatAppearance.BorderColor = [Drawing.Color]::FromArgb(60,140,80)
+$btnApply.Cursor    = "Hand"
+$pnlTop.Controls.Add($btnApply)
+
 $lblDocName = New-Object System.Windows.Forms.Label
 $lblDocName.Text      = "Πάτα Ανανέωση για να φορτωθούν οι παράμετροι"
-$lblDocName.Location  = New-Object Drawing.Point(120, 12)
-$lblDocName.Size      = New-Object Drawing.Size(300, 20)
+$lblDocName.Location  = New-Object Drawing.Point(224, 12)
+$lblDocName.Size      = New-Object Drawing.Size(206, 20)
 $lblDocName.ForeColor = $clrSub
 $pnlTop.Controls.Add($lblDocName)
 
@@ -120,7 +134,7 @@ $grid.ColumnHeadersDefaultCellStyle.ForeColor = $clrSub
 $grid.ColumnHeadersDefaultCellStyle.Font = New-Object Drawing.Font("Segoe UI", 8, [Drawing.FontStyle]::Bold)
 $grid.ColumnHeadersHeight  = 30
 $grid.AlternatingRowsDefaultCellStyle.BackColor = [Drawing.Color]::FromArgb(26,26,46)
-$grid.ReadOnly              = $true
+$grid.ReadOnly              = $false
 $grid.AllowUserToAddRows    = $false
 $grid.AllowUserToDeleteRows = $false
 $grid.SelectionMode         = "FullRowSelect"
@@ -141,6 +155,9 @@ foreach ($col in @(
     $c.FillWeight = $col.Weight
     $grid.Columns.Add($c) | Out-Null
 }
+$grid.Columns["pName"].ReadOnly = $true
+$grid.Columns["pUnit"].ReadOnly = $true
+$grid.Columns["pType"].ReadOnly = $true
 
 # ── EVENTS ───────────────────────────────────────────────────────────
 $btnInventor.Add_Click({
@@ -229,12 +246,12 @@ $btnRefresh.Add_Click({
     $lblDocName.ForeColor = $clrSub
     $lblDocName.Text = "Φόρτωση..."
     try {
-        $inv = [System.Runtime.InteropServices.Marshal]::GetActiveObject("Inventor.Application")
-        $doc = $inv.ActiveDocument
+        $script:inv = [System.Runtime.InteropServices.Marshal]::GetActiveObject("Inventor.Application")
+        $script:doc = $script:inv.ActiveDocument
         $lblDocName.ForeColor = $clrText
-        $lblDocName.Text = $doc.DisplayName
+        $lblDocName.Text = $script:doc.DisplayName
 
-        $modelParams = $doc.ComponentDefinition.Parameters.ModelParameters
+        $modelParams = $script:doc.ComponentDefinition.Parameters.ModelParameters
         $n = $modelParams.Count
         for ($i = 1; $i -le $n; $i++) {
             try {
@@ -247,11 +264,44 @@ $btnRefresh.Add_Click({
         }
 
         if ($grid.Rows.Count -eq 0) {
-            $lblDocName.Text = "$($doc.DisplayName)  —  δεν βρέθηκαν model parameters"
+            $lblDocName.Text = "$($script:doc.DisplayName)  —  δεν βρέθηκαν model parameters"
         }
     } catch {
+        $script:inv = $null
+        $script:doc = $null
         $lblDocName.ForeColor = $clrRed
         $lblDocName.Text = "Το Inventor δεν τρέχει ή δεν υπάρχει ανοιχτό αρχείο"
+    }
+})
+
+$btnApply.Add_Click({
+    if ($script:doc -eq $null) {
+        $lblDocName.ForeColor = $clrRed
+        $lblDocName.Text = "Πρώτα φόρτωσε παραμέτρους (Ανανέωση)"
+        return
+    }
+    $updated = 0
+    $errors  = 0
+    foreach ($row in $grid.Rows) {
+        $pName   = $row.Cells["pName"].Value
+        $newExpr = $row.Cells["pVal"].Value
+        if (-not $pName -or -not $newExpr) { continue }
+        try {
+            $p = $script:doc.ComponentDefinition.Parameters.ModelParameters.Item($pName)
+            if ($p.Expression -ne $newExpr) {
+                $p.Expression = $newExpr
+                $updated++
+            }
+        } catch {
+            $errors++
+        }
+    }
+    if ($errors -gt 0) {
+        $lblDocName.ForeColor = $clrRed
+        $lblDocName.Text = "$($script:doc.DisplayName)  —  $errors σφάλματα"
+    } else {
+        $lblDocName.ForeColor = [Drawing.Color]::FromArgb(100,200,120)
+        $lblDocName.Text = "$($script:doc.DisplayName)  —  $updated αλλαγές εφαρμόστηκαν"
     }
 })
 
