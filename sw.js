@@ -1,9 +1,5 @@
-const CACHE = 'expenses-v1';
-const PRECACHE = [
-  '/expenses.html',
-  '/manifest.json',
-  '/icon.svg',
-];
+const CACHE = 'expenses-v2';
+const PRECACHE = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
@@ -18,15 +14,24 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // network-first for Firebase API calls, cache-first for app shell
-  if (e.request.url.includes('firebasedatabase') || e.request.url.includes('firebasejs') ||
-      e.request.url.includes('googleapis') || e.request.url.includes('open.er-api')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  } else {
-    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, clone));
-      return res;
-    })));
+  const url = new URL(e.request.url);
+
+  // Always network-first for the main HTML — never serve stale app
+  if (url.pathname === '/expenses.html' || url.pathname === '/') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match('/expenses.html'))
+    );
+    return;
   }
+
+  // Network-first for Firebase and external APIs
+  if (url.hostname.includes('firebase') || url.hostname.includes('googleapis') ||
+      url.hostname.includes('er-api') || url.hostname.includes('gstatic') ||
+      url.hostname.includes('jsdelivr') || url.hostname.includes('fonts')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
+  // Cache-first for icons and manifest
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
