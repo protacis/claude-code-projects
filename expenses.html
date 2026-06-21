@@ -502,8 +502,9 @@ let fxFetched = false;
 
 async function fetchRates() {
   try {
-    const res  = await fetch('https://api.frankfurter.app/latest?from=EUR&to=AED,USD');
+    const res  = await fetch('https://open.er-api.com/v6/latest/EUR');
     const data = await res.json();
+    if (data.result !== 'success') throw new Error('API error');
     fxToEur = { EUR: 1, AED: 1 / data.rates.AED, USD: 1 / data.rates.USD };
     fxFetched = true;
     fxFetchedAt = new Date();
