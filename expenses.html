@@ -464,7 +464,11 @@
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
         <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 21:32</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <div style="margin-top:24px;padding:16px;background:var(--surface2);border-radius:12px;text-align:center">
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Developed by <a href="https://www.protacis.com" target="_blank" style="color:var(--accent);text-decoration:none">Protacis</a></p>
+          <p style="font-size:11px;color:var(--sub);margin-bottom:0">Engineering &amp; consulting firm specializing in Product Development, Project Management, and Strategic Solutions across European and Middle Eastern markets.</p>
+        </div>
+        <p style="font-size:11px;color:var(--sub);margin-top:16px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 21:38</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
   </div>
@@ -1205,7 +1209,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 21:32</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 21:38</p>
   `;
 
   updateNotifBadge();
@@ -1870,7 +1874,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '21:32';
+const _THIS_VERSION = '21:38';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
