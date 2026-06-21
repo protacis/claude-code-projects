@@ -463,7 +463,7 @@
         <p style="font-size:13px;color:var(--sub);margin-bottom:16px">Export all expenses to a CSV file (last 2 years).</p>
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 20:46</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 20:51</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
   </div>
@@ -1198,7 +1198,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px;background:#f59e0b">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 20:46</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 20:51</p>
   `;
 
   updateNotifBadge();
@@ -1859,19 +1859,20 @@ async function startDemo() {
 const _rejoin = localStorage.getItem('_rejoin');
 if (_rejoin) { localStorage.removeItem('_rejoin'); localStorage.setItem('familyId', _rejoin); }
 
-const _THIS_VERSION = '20:46';
+const _THIS_VERSION = '20:51';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
   .then(({v}) => { _latestVersion = v; })
   .catch(()=>{});
 
-// Called synchronously on first PIN digit tap (user gesture = iOS fetches fresh HTML)
+// Called on every PIN digit tap until fetch resolves and check is done
 let _updateChecked = false;
 function checkUpdateOnGesture() {
   if (_updateChecked) return false;
+  if (_latestVersion === null) return false; // fetch still in progress — check on next tap
   _updateChecked = true;
-  if (_latestVersion && _latestVersion !== _THIS_VERSION) {
+  if (_latestVersion !== _THIS_VERSION) {
     const fid = localStorage.getItem('familyId');
     if (fid) localStorage.setItem('_rejoin', fid);
     localStorage.removeItem('familyId');
