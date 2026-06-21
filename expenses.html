@@ -880,6 +880,7 @@ function buildSplitRows(rowsId, context) {
   }
 
   const container=$(rowsId); if(!container) return;
+  document.getElementById(`split-remaining-${context}`)?.remove();
   container.innerHTML=details.map(s=>{
     const u=users.find(u=>u.id===s.userId); if(!u||u.deleted) return '';
     return `<div class="split-user-row">
@@ -891,6 +892,17 @@ function buildSplitRows(rowsId, context) {
         onchange="updateSplitAmount('${s.userId}','${context}',parseFloat(this.value)||0)">
     </div>`;
   }).join('');
+
+  const allocated = round2(details.filter(d=>d.selected).reduce((s,d)=>s+d.amount,0));
+  const remaining = round2(amount - allocated);
+  const over = remaining < -0.01;
+  const exact = Math.abs(remaining) <= 0.01;
+  const cur = context==='edit'?editCur:context==='rec'?($('rec-currency')?.value||'AED'):selectedCur;
+  container.insertAdjacentHTML('afterend',
+    `<div id="split-remaining-${context}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 2px;font-size:13px;color:${over?'var(--danger)':exact?'var(--success)':'var(--sub)'}">
+      <span>${over?'⚠️ Over by':'Remaining:'}</span>
+      <strong>${fmt(over?Math.abs(remaining):remaining, cur)}</strong>
+    </div>`);
 }
 
 function toggleSplitUser(userId, context, checked) {
