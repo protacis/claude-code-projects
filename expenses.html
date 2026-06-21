@@ -1856,9 +1856,11 @@ if('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 
-// Prevent double-tap zoom on iOS (viewport meta alone is not enough)
+// Prevent double-tap zoom on iOS — skip interactive elements so rapid PIN entry works
 let _lastTap = 0;
 document.addEventListener('touchend', function(e) {
+  const tag = e.target?.tagName;
+  if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'LABEL') return;
   const now = Date.now();
   if (now - _lastTap < 300) e.preventDefault();
   _lastTap = now;
