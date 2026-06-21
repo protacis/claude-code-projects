@@ -1422,10 +1422,12 @@ window.setUserPin=async function(userId) {
 // Change PIN (shared)
 async function changePin() {
   const cur=$('pin-current').value.trim(), nw=$('pin-new').value.trim(), conf=$('pin-confirm').value.trim();
+  if(!/^\d{4}$/.test(cur)){showToast('Enter current PIN');return;}
   if(!/^\d{4}$/.test(nw)){showToast('New PIN must be 4 digits');return;}
   if(nw!==conf){showToast('PINs do not match');return;}
   const curHash=await sha256(cur);
-  if(curHash!==config.pinHash){showToast('Current PIN is wrong');return;}
+  if(curHash!==config.pinHash){showToast('❌ Current PIN is wrong — no changes made');return;}
+  if(!confirm(`Change PIN to ${nw}? Make sure you remember it.`)){return;}
   const newHash=await sha256(nw);
   await db.ref('config/pinHash').set(newHash);
   config.pinHash=newHash;
