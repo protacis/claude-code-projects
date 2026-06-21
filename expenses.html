@@ -463,7 +463,7 @@
         <p style="font-size:13px;color:var(--sub);margin-bottom:16px">Export all expenses to a CSV file (last 2 years).</p>
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 19:44</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 19:48</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
   </div>
@@ -1198,7 +1198,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px;background:#f59e0b">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 19:44</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 19:48</p>
   `;
 
   updateNotifBadge();
@@ -1856,7 +1856,7 @@ async function startDemo() {
 }
 
 // Version check — show tap-to-update banner if stale
-const _THIS_VERSION = '19:44';
+const _THIS_VERSION = '19:48';
 function showUpdateBanner() {
   const b = document.createElement('div');
   b.id = 'update-banner';
@@ -1865,7 +1865,7 @@ function showUpdateBanner() {
   b.onclick = () => window.location.reload();
   document.body.appendChild(b);
 }
-fetch('/version.json?t=' + Date.now())
+fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
   .then(({v}) => { if(v !== _THIS_VERSION) showUpdateBanner(); })
   .catch(()=>{});
