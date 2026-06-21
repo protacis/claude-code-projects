@@ -1117,16 +1117,19 @@ async function renderHome() {
   const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   const uname=users.find(u=>u.id===activeUserId)?.name||'';
   $('home-greeting').textContent=`${greet}, ${uname}! 👋`;
-  $('home-period').textContent=`${MONTHS[currentMonth-1]} ${currentYear}`;
+
+  // Home always shows today's month regardless of list navigation
+  const homeY=now.getFullYear(), homeM=now.getMonth()+1;
+  const homeExpenses=(homeY===currentYear&&homeM===currentMonth)?listExpenses:await loadMonth(homeY,homeM);
+  $('home-period').textContent=`${MONTHS[homeM-1]} ${homeY}`;
 
   const primCur=config.defaultCurrency||'AED';
-  const items=Object.values(listExpenses);
+  const items=Object.values(homeExpenses);
   const budget=config.budget||0;
 
   const totalPrim=items.reduce((s,e)=>{
     const cur=e.currency||primCur;
-    const amt=cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1);
-    return s+amt;
+    return s+(cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1));
   },0);
 
   const totalEur=items.reduce((s,e)=>{
@@ -1136,13 +1139,14 @@ async function renderHome() {
 
   const budgetPct=budget>0?Math.min(totalPrim/budget,1):0;
   const cls=budgetPct>.9?' danger':budgetPct>.7?' warning':'';
-  const daysPassed=now.getMonth()+1===currentMonth&&now.getFullYear()===currentYear?now.getDate():new Date(currentYear,currentMonth,0).getDate();
+  const daysPassed=now.getDate();
   const avgDay=daysPassed>0?totalPrim/daysPassed:0;
 
-  // month comparison
-  let prevM=currentMonth-1, prevY=currentYear;
+  // fair comparison: previous month up to same day-of-month
+  let prevM=homeM-1, prevY=homeY;
   if(prevM<1){prevM=12;prevY--;}
-  const prevItems=Object.values(await loadMonth(prevY,prevM));
+  const prevAllItems=Object.values(await loadMonth(prevY,prevM));
+  const prevItems=prevAllItems.filter(e=>parseInt((e.date||'').split('-')[2]||'99')<=daysPassed);
   const prevTotal=prevItems.reduce((s,e)=>{
     const cur=e.currency||primCur;
     return s+(cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1));
@@ -1152,7 +1156,7 @@ async function renderHome() {
     const diff=totalPrim-prevTotal, pct=Math.round(Math.abs(diff)/prevTotal*100);
     const up=diff>0;
     compHtml=`<span style="font-size:13px;font-weight:600;color:${up?'var(--danger)':'var(--success)'}">
-      ${up?'↑':'↓'} ${pct}% vs ${MONTHS[prevM-1]}</span>`;
+      ${up?'↑':'↓'} ${pct}% vs ${MONTHS[prevM-1]} (1–${daysPassed})</span>`;
   }
 
   const byCat={};
@@ -1162,7 +1166,7 @@ async function renderHome() {
   $('home-content').innerHTML=`
     <div class="stats-card" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:baseline">
-        <h3>${MONTHS[currentMonth-1]} ${currentYear}</h3>
+        <h3>${MONTHS[homeM-1]} ${homeY}</h3>
         ${compHtml}
       </div>
       <div class="home-total-amount">${fmt(totalPrim,primCur)}</div>
