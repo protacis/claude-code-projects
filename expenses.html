@@ -320,7 +320,7 @@
   <!-- Add -->
   <div id="view-add" class="view">
     <div class="amount-wrap">
-      <span class="amount-symbol" id="amount-symbol">AED</span><input type="number" id="amount-input" placeholder="0" inputmode="decimal" step="0.01" min="0">
+      <span class="amount-symbol" id="amount-symbol">AED</span><input type="text" id="amount-input" placeholder="0" inputmode="decimal">
     </div>
     <div class="section-label">Currency</div>
     <div class="toggle-row" id="currency-toggle">
@@ -429,7 +429,7 @@
         <div class="budget-input-row" style="margin-bottom:4px">
           <div class="budget-input-icon">📅</div>
           <span class="budget-input-label" style="font-size:15px;font-weight:600">Monthly total</span>
-          <input type="number" id="total-budget-input" class="budget-input-field" placeholder="—" inputmode="decimal" min="0" style="width:100px">
+          <input type="text" id="total-budget-input" class="budget-input-field" placeholder="—" inputmode="decimal" style="width:100px">
           <select id="total-budget-cur" class="budget-cur-select">
             <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option>
           </select>
@@ -501,7 +501,7 @@
   <div class="modal-title">Edit Expense</div>
   <div class="amount-wrap" style="padding:0 0 16px">
     <span class="amount-symbol" id="edit-amount-symbol">AED</span>
-    <input type="number" id="edit-amount" placeholder="0" inputmode="decimal" step="0.01" min="0"
+    <input type="text" id="edit-amount" placeholder="0" inputmode="decimal"
       style="font-size:52px;font-weight:700;width:160px;border:none;background:transparent;color:var(--text);text-align:center;font-family:inherit;outline:none">
   </div>
   <div class="section-label">Currency</div>
@@ -539,7 +539,7 @@
   <div class="input-group"><label>Description</label><input type="text" id="rec-desc" placeholder="e.g. Rent" autocomplete="off"></div>
   <div class="section-label">Amount & Currency</div>
   <div style="display:flex;gap:8px;margin-bottom:20px">
-    <div style="flex:2"><input type="number" id="rec-amount" placeholder="0" inputmode="decimal" class="budget-input-field" style="width:100%;padding:14px 12px;font-size:16px"></div>
+    <div style="flex:2"><input type="text" id="rec-amount" placeholder="0" inputmode="decimal" class="budget-input-field" style="width:100%;padding:14px 12px;font-size:16px"></div>
     <div style="flex:1">
       <select id="rec-currency" class="budget-cur-select" style="width:100%;padding:14px 8px;font-size:14px;border-radius:12px;border:1.5px solid var(--border)">
         <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option>
@@ -1005,7 +1005,7 @@ function buildSplitRows(rowsId, context) {
         <input type="checkbox" ${s.selected?'checked':''} onchange="toggleSplitUser('${s.userId}','${context}',this.checked)">
         ${escHtml(u.name)}
       </label>
-      <input type="number" class="split-amount-input" value="${s.amount.toFixed(2)}" inputmode="decimal" step="0.01"
+      <input type="text" class="split-amount-input" value="${s.amount.toFixed(2)}" inputmode="decimal"
         onchange="updateSplitAmount('${s.userId}','${context}',parseAmt(this.value))">
     </div>`;
   }).join('');
@@ -1657,7 +1657,7 @@ function buildCatBudgetInputs() {
     const row=document.createElement('div'); row.className='budget-input-row';
     row.innerHTML=`<div class="budget-input-icon" style="background:${cat.color}22">${cat.icon}</div>
       <span class="budget-input-label">${cat.label}</span>
-      <input type="number" class="budget-input-field" data-cat="${cat.id}" value="${amt}" placeholder="—" inputmode="decimal" min="0">
+      <input type="text" class="budget-input-field" data-cat="${cat.id}" value="${amt}" placeholder="—" inputmode="decimal">
       <select class="budget-cur-select" data-cat-cur="${cat.id}">
         <option value="AED"${cur==='AED'?' selected':''}>AED</option>
         <option value="EUR"${cur==='EUR'?' selected':''}>EUR</option>
