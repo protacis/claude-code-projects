@@ -1560,6 +1560,14 @@ window.exportCSV=async function() {
 };
 
 boot();
+
+// Prevent double-tap zoom on iOS (viewport meta alone is not enough)
+let _lastTap = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - _lastTap < 300) e.preventDefault();
+  _lastTap = now;
+}, { passive: false });
 </script>
 </body>
 </html>
