@@ -615,6 +615,8 @@ let pieChart = null, trendsChart = null;
 let pinEntry = '';
 let reportCur = 'EUR';
 let notifications = [];
+let lastSeen = 0;
+let activityNotifs = [];
 
 const $ = id => document.getElementById(id);
 function showToast(msg, ms=2200) { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),ms); }
@@ -779,7 +781,11 @@ function launchApp() {
   setInterval(async()=>{ await fetchRates(); if($('view-stats').classList.contains('active')) renderStats(statsYear,statsMonth); }, 86400000);
 
   subscribeCurrentMonth();
-  loadRecurring().then(()=>{ checkPendingRecurring(); renderHome(); });
+  loadRecurring().then(async()=>{
+    await loadLastSeenAndActivity();
+    checkPendingRecurring();
+    renderHome();
+  });
 }
 
 // ─── Cat Grid ───
@@ -1047,6 +1053,35 @@ function renderHome() {
   updateNotifBadge();
 }
 
+// ─── Activity (changes by other users) ───
+async function loadLastSeenAndActivity() {
+  const snap = await db.ref(`config/lastSeen/${activeUserId}`).once('value');
+  lastSeen = snap.val() || 0;
+  const primCur = config.defaultCurrency || 'AED';
+  activityNotifs = [];
+  // check current month + previous month
+  const months = [];
+  let y = currentYear, m = currentMonth;
+  for (let i = 0; i < 2; i++) { months.push({y,m}); m--; if(m<1){m=12;y--;} }
+  for (const {y:my, m:mm} of months) {
+    const data = (my===currentYear&&mm===currentMonth) ? listExpenses : await loadMonth(my, mm);
+    Object.values(data).forEach(e => {
+      if (!e.addedBy || e.addedBy === activeUserId) return;
+      if ((e.ts||0) <= lastSeen) return;
+      const cat = catMap[e.cat] || catMap.other;
+      const adder = getUserName(e.addedBy);
+      activityNotifs.push({
+        type: 'activity',
+        icon: cat.icon,
+        title: `${adder} added "${escHtml(e.desc)}"`,
+        desc: `${fmt(e.amount, e.currency||primCur)} · ${cat.label} · ${fmtDate(e.date)}`,
+        ts: e.ts
+      });
+    });
+  }
+  activityNotifs.sort((a,b) => b.ts - a.ts);
+}
+
 // ─── Notifications ───
 function checkPendingRecurring() {
   const ym=`${currentYear}-${currentMonth}`;
@@ -1061,6 +1096,7 @@ function buildNotifications() {
   pendingRecurring.forEach(r=>{
     notifications.push({type:'recurring',id:r.id,icon:catMap[r.cat]?.icon||'🔁',title:escHtml(r.desc),desc:`${fmt(r.amount,r.currency||primCur)} · Day ${r.day} of month`,rec:r});
   });
+  activityNotifs.forEach(a => notifications.push(a));
 }
 
 function updateNotifBadge() {
@@ -1076,18 +1112,39 @@ window.openNotifications=function() {
   if(!notifications.length) {
     list.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><p>All caught up!</p></div>';
   } else {
-    list.innerHTML=notifications.map((n,i)=>`
+    const recurring = notifications.filter(n=>n.type==='recurring');
+    const activity  = notifications.filter(n=>n.type==='activity');
+    let html='';
+    if(recurring.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">🔁 Recurring</div>`;
+    html+=recurring.map((n,i)=>`
       <div class="notif-item" id="notif-item-${i}">
         <div class="notif-icon">${n.icon}</div>
         <div class="notif-body">
           <div class="notif-title">${n.title}</div>
           <div class="notif-desc">${n.desc}</div>
-          ${n.type==='recurring'?`<div class="notif-actions">
+          <div class="notif-actions">
             <button class="notif-btn-add" onclick="addPendingRecurring('${n.rec.id}',${i})">Add this month</button>
             <button class="notif-btn-skip" onclick="skipPendingRecurring('${n.rec.id}',${i})">Skip</button>
-          </div>`:''}
+          </div>
         </div>
       </div>`).join('');
+    if(activity.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:${recurring.length?'20px':0} 0 10px">👥 Recent activity</div>`;
+    html+=activity.map(n=>`
+      <div class="notif-item">
+        <div class="notif-icon">${n.icon}</div>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-desc">${n.desc}</div>
+        </div>
+      </div>`).join('');
+    list.innerHTML=html;
+  }
+  // mark activity as read
+  if(activityNotifs.length) {
+    const now=Date.now();
+    db.ref(`config/lastSeen/${activeUserId}`).set(now);
+    lastSeen=now; activityNotifs=[];
+    buildNotifications(); updateNotifBadge();
   }
   $('notif-scrim').classList.add('open');
   $('notif-sheet').classList.add('open');
@@ -1137,7 +1194,7 @@ async function saveExpense() {
   if(dateVal>today()&&!confirm(`The date you entered (${fmtDate(dateVal)}) is in the future. Are you sure?`)){return;}
   const [y,m]=dateVal.split('-').map(Number);
   const desc=$('desc-input').value.trim()||catMap[selectedCat].label;
-  const expData={amount,desc,cat:selectedCat,currency:selectedCur,date:dateVal,ts:Date.now()};
+  const expData={amount,desc,cat:selectedCat,currency:selectedCur,date:dateVal,ts:Date.now(),addedBy:activeUserId};
   if(selectedWho==='split'){
     const sel=splitDetails.filter(s=>s.selected);
     if(sel.length<2){showToast('⚠️ Select at least 2 people');return;}
