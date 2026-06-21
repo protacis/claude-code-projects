@@ -464,11 +464,24 @@
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
         <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <div style="margin-top:24px;padding:16px;background:var(--surface2);border-radius:12px;text-align:center">
-          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Developed by <a href="https://www.protacis.com" target="_blank" style="color:var(--accent);text-decoration:none">Protacis</a></p>
-          <p style="font-size:11px;color:var(--sub);margin-bottom:0">Engineering &amp; consulting firm specializing in Product Development, Project Management, and Strategic Solutions across European and Middle Eastern markets.</p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 21:44</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+      </div></div>
+    </div>
+    <!-- About -->
+    <div class="acc-item">
+      <button class="acc-header" onclick="toggleAcc('about')">
+        <span class="acc-header-left">ℹ️ About</span><span class="acc-arrow" id="arr-about">›</span>
+      </button>
+      <div class="acc-body" id="acc-about"><div class="acc-inner">
+        <div style="text-align:center;padding:8px 0 16px">
+          <a href="https://www.protacis.com" target="_blank">
+            <img src="https://images.squarespace-cdn.com/content/v1/697102c2cf812933751d444e/a2f705ff-b39c-486d-8745-7dde2c9b8696/Protacis+just+logo.png?format=300w" alt="Protacis" style="height:64px;object-fit:contain">
+          </a>
+          <p style="font-size:15px;font-weight:700;color:var(--text);margin:12px 0 4px">Protacis</p>
+          <p style="font-size:12px;color:var(--sub);margin-bottom:12px">Unlock Your Potential with Strategic Consulting</p>
+          <p style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:16px">Engineering &amp; consulting firm with 10+ years of experience, specializing in Product Development, Project Management, and Strategic Solutions across European and Middle Eastern markets.</p>
+          <a href="https://www.protacis.com" target="_blank" style="display:inline-block;padding:8px 20px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">www.protacis.com</a>
         </div>
-        <p style="font-size:11px;color:var(--sub);margin-top:16px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 21:38</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
   </div>
@@ -1094,7 +1107,7 @@ function switchView(name) {
   if(name==='settings') { buildUsersSection(); buildRecurringSection(); }
 }
 function collapseAllAcc() {
-  ['appearance','users','security','budget','recurring','data'].forEach(id=>{
+  ['appearance','users','security','budget','recurring','data','about'].forEach(id=>{
     $('acc-'+id)?.classList.remove('open');
     $('arr-'+id)?.classList.remove('open');
   });
@@ -1209,7 +1222,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 21:38</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 21:44</p>
   `;
 
   updateNotifBadge();
@@ -1874,7 +1887,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '21:38';
+const _THIS_VERSION = '21:44';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
