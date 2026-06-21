@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Expenses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --border: #334155;
+      --text: #f1f5f9;
+      --sub: #94a3b8;
+      --accent: #6366f1;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --tab-h: 60px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+      background: var(--bg);
+      transition: opacity 0.25s;
+      overflow-y: auto;
+    }
+    .screen.hidden { opacity: 0; pointer-events: none; }
+
+    .screen-logo { font-size: 52px; margin-bottom: 8px; }
+    .screen-title { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .screen-sub { font-size: 14px; color: var(--sub); margin-bottom: 36px; text-align: center; line-height: 1.5; }
+
+    .input-group { width: 100%; max-width: 360px; margin-bottom: 14px; }
+    .input-group label {
+      display: block; font-size: 11px; font-weight: 600; color: var(--sub);
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
+    }
+    .input-group input, .input-group select {
+      width: 100%; padding: 14px 16px; background: var(--surface);
+      border: 1.5px solid var(--border); border-radius: 12px; color: var(--text);
+      font-family: inherit; font-size: 16px; outline: none; transition: border-color 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .input-group input:focus, .input-group select:focus { border-color: var(--accent); }
+    .input-group select option { background: #1e293b; }
+
+    .pin-dots { display: flex; gap: 18px; margin-bottom: 36px; }
+    .pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--sub); transition: all 0.2s; }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
+
+    .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; max-width: 272px; }
+    .numpad-btn {
+      aspect-ratio: 1; border: none; border-radius: 50%; background: var(--surface);
+      color: var(--text); font-family: inherit; font-size: 24px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, transform 0.1s; user-select: none;
+    }
+    .numpad-btn:active { background: var(--surface2); transform: scale(0.92); }
+    .numpad-btn.empty { visibility: hidden; }
+    .numpad-btn.delete { font-size: 20px; }
+
+    .btn-primary {
+      width: 100%; max-width: 360px; padding: 16px; background: var(--accent);
+      color: white; border: none; border-radius: 14px; font-family: inherit;
+      font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-primary:active { opacity: 0.85; transform: scale(0.99); }
+
+    #screen-app { padding: 0; justify-content: flex-start; overflow: hidden; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; display: flex;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom); z-index: 100;
+    }
+    .tab-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 10px 8px; border: none; background: transparent; color: var(--sub);
+      font-family: inherit; font-size: 10px; font-weight: 500; cursor: pointer;
+      transition: color 0.2s; letter-spacing: 0.02em;
+    }
+    .tab-btn .tab-icon { font-size: 22px; line-height: 1; }
+    .tab-btn.active { color: var(--accent); }
+
+    .view {
+      position: fixed; top: 0; left: 0; right: 0;
+      bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 20px 16px 28px; display: none;
+    }
+    .view.active { display: block; }
+
+    .section-label {
+      font-size: 11px; font-weight: 600; color: var(--sub);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+    }
+
+    /* Add view */
+    .amount-wrap { text-align: center; padding: 16px 0 20px; }
+    .amount-symbol {
+      font-size: 26px; font-weight: 400; color: var(--sub);
+      vertical-align: top; margin-top: 18px; line-height: 1; margin-right: 4px;
+    }
+    input#amount-input {
+      font-size: 68px; font-weight: 700; width: 180px; border: none;
+      background: transparent; color: var(--text); text-align: center;
+      font-family: inherit; outline: none;
+    }
+    input#amount-input::placeholder { color: var(--surface2); }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+    .cat-chip {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 4px; border-radius: 12px; border: 2px solid transparent;
+      background: var(--surface); cursor: pointer; transition: all 0.15s;
+      font-size: 10px; color: var(--sub); user-select: none;
+    }
+    .cat-chip .cat-icon { font-size: 22px; }
+    .cat-chip.selected { border-color: var(--accent); background: rgba(99,102,241,0.12); color: var(--text); }
+
+    .toggle-row { display: flex; background: var(--surface); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+    .toggle-btn {
+      flex: 1; padding: 9px 6px; border: none; border-radius: 9px; background: transparent;
+      color: var(--sub); font-family: inherit; font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .toggle-btn.active { background: var(--accent); color: white; }
+
+    /* List view */
+    .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .month-nav-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: var(--surface); color: var(--text); font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .month-nav-title { font-size: 18px; font-weight: 700; }
+
+    .budget-card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+    .cur-total-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+    .cur-total-primary { font-size: 28px; font-weight: 700; }
+    .cur-total-secondary { font-size: 16px; font-weight: 600; color: var(--sub); }
+    .cur-total-limit { font-size: 12px; color: var(--sub); }
+    .progress-bar { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; margin: 10px 0 8px; }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--success); transition: width 0.5s ease; }
+    .progress-fill.warning { background: var(--warning); }
+    .progress-fill.danger  { background: var(--danger); }
+    .split-row { display: flex; gap: 8px; margin-top: 10px; }
+    .split-chip {
+      flex: 1; padding: 7px 10px; background: var(--surface2); border-radius: 8px;
+      font-size: 12px; display: flex; justify-content: space-between; gap: 4px;
+    }
+    .split-chip span:last-child { font-weight: 600; font-size: 11px; }
+
+    .day-group { margin-bottom: 16px; }
+    .day-label { font-size: 11px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .expense-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      background: var(--surface); border-radius: 12px; margin-bottom: 6px;
+    }
+    .expense-cat-icon {
+      width: 42px; height: 42px; border-radius: 11px; display: flex;
+      align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .expense-info { flex: 1; min-width: 0; }
+    .expense-desc { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .expense-meta { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .expense-right { text-align: right; flex-shrink: 0; }
+    .expense-amount { font-size: 16px; font-weight: 700; }
+    .expense-eur { font-size: 11px; color: var(--sub); margin-top: 1px; }
+    .expense-who { font-size: 11px; color: var(--sub); margin-top: 1px; }
+    .expense-del, .expense-edit {
+      width: 30px; height: 30px; border-radius: 50%; border: none; background: transparent;
+      color: var(--sub); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .expense-del { font-size: 18px; }
+    .expense-del:active { color: var(--danger); }
+    .expense-edit { font-size: 14px; }
+    .expense-edit:active { color: var(--accent); }
+
+    /* Edit modal */
+    #edit-scrim {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    #edit-scrim.open { opacity: 1; pointer-events: all; }
+    #edit-modal {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg); border-radius: 20px 20px 0 0;
+      padding: 12px 20px calc(28px + env(safe-area-inset-bottom)); z-index: 201;
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(.32,.72,0,1);
+      max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    }
+    #edit-modal.open { transform: translateY(0); }
+    .modal-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: var(--surface2); margin: 0 auto 16px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    .empty-state { text-align: center; padding: 64px 24px; color: var(--sub); }
+    .empty-state .empty-icon { font-size: 52px; margin-bottom: 12px; }
+    .empty-state p { font-size: 16px; }
+
+    /* Stats view */
+    .stats-card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+    .stats-card h3 { font-size: 11px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+    .chart-wrap { position: relative; height: 220px; }
+    .cat-stat-group { border-bottom: 1px solid var(--border); }
+    .cat-stat-group:last-child { border-bottom: none; }
+    .cat-stat-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+    .cat-stat-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .cat-stat-name { flex: 1; font-size: 14px; }
+    .cat-stat-amount { font-size: 14px; font-weight: 600; }
+    .cat-stat-pct { font-size: 12px; color: var(--sub); min-width: 36px; text-align: right; }
+    .cat-budget-bar-row { display: flex; align-items: center; gap: 8px; padding: 0 0 9px; }
+    .cat-budget-bar-wrap { flex: 1; height: 5px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
+    .cat-budget-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .cat-budget-label-small { font-size: 11px; color: var(--sub); white-space: nowrap; }
+    .fx-note { font-size: 11px; color: var(--sub); text-align: center; margin-top: 10px; }
+
+    /* Settings view */
+    .budget-input-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .budget-input-row:last-of-type { border-bottom: none; }
+    .budget-input-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 19px;
+    }
+    .budget-input-label { flex: 1; font-size: 15px; }
+    .budget-input-field {
+      width: 96px; padding: 8px 10px; background: var(--surface);
+      border: 1.5px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: inherit; font-size: 15px;
+      text-align: right; outline: none; appearance: none; -webkit-appearance: none;
+    }
+    .budget-input-field:focus { border-color: var(--accent); }
+
+    #toast {
+      position: fixed;
+      bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 12px);
+      left: 50%; transform: translateX(-50%) translateY(16px);
+      background: var(--surface2); color: var(--text); padding: 10px 22px;
+      border-radius: 100px; font-size: 14px; font-weight: 500; opacity: 0;
+      transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #screen-error p { color: var(--sub); font-size: 14px; margin-top: 12px; text-align: center; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- Setup -->
+<div id="screen-setup" class="screen hidden">
+  <div class="screen-logo">💰</div>
+  <div class="screen-title">Setup</div>
+  <div class="screen-sub">Fill in your details<br>to get started</div>
+  <div class="input-group">
+    <label>Person 1 name</label>
+    <input type="text" id="setup-name1" placeholder="e.g. Byron" autocomplete="off" autocorrect="off">
+  </div>
+  <div class="input-group">
+    <label>Person 2 name</label>
+    <input type="text" id="setup-name2" placeholder="e.g. Elli" autocomplete="off" autocorrect="off">
+  </div>
+  <div class="input-group">
+    <label>Primary currency</label>
+    <select id="setup-currency">
+      <option value="AED">🇦🇪 AED — Dirham (Dubai)</option>
+      <option value="EUR">🇪🇺 EUR — Euro</option>
+      <option value="USD">🇺🇸 USD — Dollar</option>
+    </select>
+  </div>
+  <div class="input-group">
+    <label>Monthly budget (in primary currency)</label>
+    <input type="number" id="setup-budget" placeholder="e.g. 8000" inputmode="numeric" min="0">
+  </div>
+  <div class="input-group">
+    <label>PIN (4 digits)</label>
+    <input type="password" id="setup-pin" placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="new-password">
+  </div>
+  <button class="btn-primary" id="btn-setup-save">Save &amp; Start →</button>
+</div>
+
+<!-- PIN -->
+<div id="screen-pin" class="screen hidden">
+  <div class="screen-logo">🔐</div>
+  <div class="screen-title">Expenses</div>
+  <div class="screen-sub" id="pin-sub">Enter your PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="dot-0"></div>
+    <div class="pin-dot" id="dot-1"></div>
+    <div class="pin-dot" id="dot-2"></div>
+    <div class="pin-dot" id="dot-3"></div>
+  </div>
+  <div class="numpad">
+    <button class="numpad-btn" data-n="1">1</button>
+    <button class="numpad-btn" data-n="2">2</button>
+    <button class="numpad-btn" data-n="3">3</button>
+    <button class="numpad-btn" data-n="4">4</button>
+    <button class="numpad-btn" data-n="5">5</button>
+    <button class="numpad-btn" data-n="6">6</button>
+    <button class="numpad-btn" data-n="7">7</button>
+    <button class="numpad-btn" data-n="8">8</button>
+    <button class="numpad-btn" data-n="9">9</button>
+    <button class="numpad-btn empty" aria-hidden="true"></button>
+    <button class="numpad-btn" data-n="0">0</button>
+    <button class="numpad-btn delete" id="btn-del">⌫</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="screen-app" class="screen hidden">
+
+  <!-- Add -->
+  <div id="view-add" class="view active">
+    <div class="amount-wrap">
+      <span class="amount-symbol" id="amount-symbol">AED</span><input
+        type="number" id="amount-input" placeholder="0" inputmode="decimal" step="0.01" min="0">
+    </div>
+    <div class="section-label">Currency</div>
+    <div class="toggle-row" id="currency-toggle">
+      <button class="toggle-btn active" data-cur="AED">🇦🇪 AED</button>
+      <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
+      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+    </div>
+    <div class="section-label">Category</div>
+    <div class="cat-grid" id="cat-grid"></div>
+    <div class="section-label">Who paid?</div>
+    <div class="toggle-row" id="who-toggle">
+      <button class="toggle-btn active" data-who="person1" id="who-btn-1">—</button>
+      <button class="toggle-btn" data-who="person2" id="who-btn-2">—</button>
+    </div>
+    <div class="section-label">Description</div>
+    <div class="input-group" style="margin-bottom:16px">
+      <input type="text" id="desc-input" placeholder="e.g. Carrefour, fuel…" autocomplete="off" autocorrect="off">
+    </div>
+    <div class="section-label">Date</div>
+    <div class="input-group" style="margin-bottom:24px">
+      <input type="date" id="date-input">
+    </div>
+    <button class="btn-primary" id="btn-save-expense">Save</button>
+  </div>
+
+  <!-- List -->
+  <div id="view-list" class="view">
+    <div class="month-nav">
+      <button class="month-nav-btn" id="btn-prev-month">‹</button>
+      <div class="month-nav-title" id="month-title"></div>
+      <button class="month-nav-btn" id="btn-next-month">›</button>
+    </div>
+    <div class="budget-card" id="budget-card"></div>
+    <div id="expense-list"></div>
+  </div>
+
+  <!-- Stats -->
+  <div id="view-stats" class="view">
+    <div class="month-nav">
+      <button class="month-nav-btn" id="btn-prev-month-s">‹</button>
+      <div class="month-nav-title" id="month-title-s"></div>
+      <button class="month-nav-btn" id="btn-next-month-s">›</button>
+    </div>
+    <div class="section-label" style="margin-top:4px">Report currency</div>
+    <div class="toggle-row" id="report-cur-toggle" style="margin-bottom:16px">
+      <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
+      <button class="toggle-btn active" data-cur="EUR">🇪🇺 EUR</button>
+      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+    </div>
+    <div class="stats-card">
+      <h3 id="stats-pie-title">By category</h3>
+      <div class="chart-wrap"><canvas id="pie-chart"></canvas></div>
+    </div>
+    <div class="stats-card">
+      <h3>Category breakdown</h3>
+      <div id="cat-breakdown"></div>
+    </div>
+    <div class="stats-card">
+      <h3>By person</h3>
+      <div id="person-breakdown"></div>
+      <div class="fx-note" id="fx-note"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="view-settings" class="view">
+    <div class="section-label" style="margin-bottom:4px">Monthly Budget per Category</div>
+    <p style="font-size:13px;color:var(--sub);margin-bottom:20px">Amounts in <span id="settings-cur-label"></span></p>
+    <div class="stats-card" style="margin-bottom:20px">
+      <div id="cat-budget-inputs"></div>
+    </div>
+    <button class="btn-primary" id="btn-save-budgets">Save Budgets</button>
+  </div>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-view="add"><span class="tab-icon">➕</span><span>Add</span></button>
+    <button class="tab-btn" data-view="list"><span class="tab-icon">📋</span><span>List</span></button>
+    <button class="tab-btn" data-view="stats"><span class="tab-icon">📊</span><span>Stats</span></button>
+    <button class="tab-btn" data-view="settings"><span class="tab-icon">⚙️</span><span>Settings</span></button>
+  </nav>
+</div>
+
+<!-- Error -->
+<div id="screen-error" class="screen hidden">
+  <div class="screen-logo">⚠️</div>
+  <div class="screen-title">Connection Error</div>
+  <p id="error-msg">Could not connect to Firebase.<br>Check that the config is correct and refresh.</p>
+</div>
+
+<div id="toast"></div>
+
+<div id="edit-scrim"></div>
+<div id="edit-modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Edit Expense</div>
+
+  <div class="amount-wrap" style="padding:0 0 16px">
+    <span class="amount-symbol" id="edit-amount-symbol">AED</span><input
+      type="number" id="edit-amount" placeholder="0" inputmode="decimal" step="0.01" min="0"
+      style="font-size:52px;font-weight:700;width:160px;border:none;background:transparent;color:var(--text);text-align:center;font-family:inherit;outline:none">
+  </div>
+
+  <div class="section-label">Currency</div>
+  <div class="toggle-row" id="edit-currency-toggle" style="margin-bottom:16px">
+    <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
+    <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
+    <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+  </div>
+
+  <div class="section-label">Category</div>
+  <div class="cat-grid" id="edit-cat-grid" style="margin-bottom:16px"></div>
+
+  <div class="section-label">Who paid?</div>
+  <div class="toggle-row" id="edit-who-toggle" style="margin-bottom:16px">
+    <button class="toggle-btn" data-who="person1" id="edit-who-btn-1">—</button>
+    <button class="toggle-btn" data-who="person2" id="edit-who-btn-2">—</button>
+  </div>
+
+  <div class="section-label">Description</div>
+  <div class="input-group" style="margin-bottom:12px">
+    <input type="text" id="edit-desc" autocomplete="off" autocorrect="off" placeholder="Description">
+  </div>
+
+  <div class="section-label">Date</div>
+  <div class="input-group" style="margin-bottom:24px">
+    <input type="date" id="edit-date">
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <button class="btn-primary" id="btn-edit-cancel" style="background:var(--surface2);flex:1">Cancel</button>
+    <button class="btn-primary" id="btn-edit-save" style="flex:2">Save Changes</button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyDtxQ_l4XfVELnM2C9nN_cHECDMc7CzEdE",
+  authDomain:        "expenses-558cd.firebaseapp.com",
+  databaseURL:       "https://expenses-558cd-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "expenses-558cd",
+  storageBucket:     "expenses-558cd.firebasestorage.app",
+  messagingSenderId: "895799041673",
+  appId:             "1:895799041673:web:d9f442c6a3d9f792f37058"
+};
+
+// ─── Currencies & FX ───
+const CURRENCIES = {
+  AED: { symbol: 'AED', flag: '🇦🇪' },
+  EUR: { symbol: '€',   flag: '🇪🇺' },
+  USD: { symbol: '$',   flag: '🇺🇸' },
+};
+
+// EUR per 1 unit of each currency (updated on boot via API, fallback if offline)
+let fxToEur = { AED: 0.2519, EUR: 1, USD: 0.9259 };
+let fxFetched = false;
+
+async function fetchRates() {
+  try {
+    const res  = await fetch('https://api.frankfurter.app/latest?from=EUR&to=AED,USD');
+    const data = await res.json();
+    fxToEur = { EUR: 1, AED: 1 / data.rates.AED, USD: 1 / data.rates.USD };
+    fxFetched = true;
+    fxFetchedAt = new Date();
+  } catch (_) {
+    // offline — keep fallback rates
+  }
+}
+
+function toEur(amount, cur) { return amount * (fxToEur[cur] || 1); }
+
+function fmt(n, cur = 'AED') {
+  const num = Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (cur === 'EUR') return '€' + num;
+  if (cur === 'USD') return '$' + num;
+  return 'AED ' + num;
+}
+
+function fmtEur(n) {
+  return '€' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function eurToReport(eur) { return eur / (fxToEur[reportCur] || 1); }
+function fmtReport(eur)   { return fmt(eurToReport(eur), reportCur); }
+
+function fmtFxTime() {
+  if (!fxFetchedAt) return null;
+  return fxFetchedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ─── Categories ───
+const CATS = [
+  { id: 'food',      icon: '🍔', label: 'Food',          color: '#f97316' },
+  { id: 'market',    icon: '🛒', label: 'Shopping',      color: '#3b82f6' },
+  { id: 'fuel',      icon: '⛽', label: 'Fuel',          color: '#ef4444' },
+  { id: 'health',    icon: '💊', label: 'Health',        color: '#22c55e' },
+  { id: 'home',      icon: '🏠', label: 'Home',          color: '#8b5cf6' },
+  { id: 'fun',       icon: '🎭', label: 'Entertainment', color: '#ec4899' },
+  { id: 'clothes',   icon: '👕', label: 'Clothes',       color: '#06b6d4' },
+  { id: 'beauty',    icon: '💅', label: 'Beauty',        color: '#d946ef' },
+  { id: 'transport', icon: '🚌', label: 'Transport',     color: '#84cc16' },
+  { id: 'tech',      icon: '📱', label: 'Tech',          color: '#f59e0b' },
+  { id: 'other',     icon: '📦', label: 'Other',         color: '#6b7280' },
+];
+const catMap = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+const MONTHS = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December'
+];
+
+// ─── State ───
+let db, config;
+let currentMonth = new Date().getMonth() + 1;
+let currentYear  = new Date().getFullYear();
+let statsMonth   = currentMonth;
+let statsYear    = currentYear;
+let listExpenses = {};
+let selectedCat  = 'food';
+let selectedWho  = 'person1';
+let selectedCur  = 'AED';
+let pieChart     = null;
+let pinEntry     = '';
+let reportCur    = 'EUR';
+let fxFetchedAt  = null;
+
+// ─── Helpers ───
+const $ = id => document.getElementById(id);
+
+function showToast(msg, ms = 2200) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function fmtDate(dateStr) {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function today() { return new Date().toISOString().slice(0, 10); }
+
+function showScreen(id) {
+  ['screen-setup','screen-pin','screen-app','screen-error'].forEach(s =>
+    $(s).classList.toggle('hidden', s !== id));
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Boot ───
+async function boot() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    const [snap] = await Promise.all([
+      db.ref('config').once('value'),
+      fetchRates(),
+    ]);
+    config = snap.val();
+    if (!config?.pinHash) initSetup();
+    else initPIN();
+  } catch (e) {
+    console.error(e);
+    $('error-msg').textContent = e.message || 'Firebase error. Check the config and refresh.';
+    showScreen('screen-error');
+  }
+}
+
+// ─── Setup ───
+function initSetup() {
+  showScreen('screen-setup');
+  $('btn-setup-save').addEventListener('click', async () => {
+    const name1           = $('setup-name1').value.trim() || 'Person 1';
+    const name2           = $('setup-name2').value.trim() || 'Person 2';
+    const defaultCurrency = $('setup-currency').value;
+    const budget          = parseFloat($('setup-budget').value) || 0;
+    const pin             = $('setup-pin').value.trim();
+    if (!/^\d{4}$/.test(pin)) { showToast('PIN must be exactly 4 digits'); return; }
+    const pinHash = await sha256(pin);
+    config = { pinHash, name1, name2, defaultCurrency, budget };
+    await db.ref('config').set(config);
+    launchApp();
+  });
+}
+
+// ─── PIN ───
+function initPIN() {
+  showScreen('screen-pin');
+  pinEntry = '';
+  updateDots();
+  document.querySelectorAll('.numpad-btn[data-n]').forEach(btn =>
+    btn.addEventListener('click', () => pressDigit(btn.dataset.n)));
+  $('btn-del').addEventListener('click', () => { pinEntry = pinEntry.slice(0,-1); updateDots(); });
+}
+
+function updateDots() {
+  for (let i = 0; i < 4; i++)
+    $(`dot-${i}`).classList.toggle('filled', i < pinEntry.length);
+}
+
+async function pressDigit(n) {
+  if (pinEntry.length >= 4) return;
+  pinEntry += n;
+  updateDots();
+  if (pinEntry.length < 4) return;
+  const hash = await sha256(pinEntry);
+  if (hash === config.pinHash) {
+    launchApp();
+  } else {
+    const sub = $('pin-sub');
+    sub.textContent = 'Wrong PIN — try again';
+    sub.style.color = 'var(--danger)';
+    setTimeout(() => { pinEntry = ''; updateDots(); sub.textContent = 'Enter your PIN'; sub.style.color = ''; }, 900);
+  }
+}
+
+// ─── Launch App ───
+function launchApp() {
+  showScreen('screen-app');
+  selectedCur = config.defaultCurrency || 'AED';
+
+  buildCatGrid();
+  $('who-btn-1').textContent = config.name1;
+  $('who-btn-2').textContent = config.name2;
+  $('date-input').value = today();
+
+  document.querySelectorAll('#currency-toggle .toggle-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.cur === selectedCur));
+  $('amount-symbol').textContent = CURRENCIES[selectedCur].symbol;
+
+  setupCurrencyToggle();
+  setupWhoToggle();
+  setupTabs();
+  $('btn-save-expense').addEventListener('click', saveExpense);
+  $('btn-prev-month').addEventListener('click', () => changeListMonth(-1));
+  $('btn-next-month').addEventListener('click', () => changeListMonth(+1));
+  $('btn-prev-month-s').addEventListener('click', () => changeStatsMonth(-1));
+  $('btn-next-month-s').addEventListener('click', () => changeStatsMonth(+1));
+  buildCatBudgetInputs();
+  $('btn-save-budgets').addEventListener('click', saveCategoryBudgets);
+  reportCur = config.defaultCurrency || 'EUR';
+  document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.cur === reportCur));
+  setupReportCurrencyToggle();
+  setInterval(async () => {
+    await fetchRates();
+    if ($('view-stats').classList.contains('active')) renderStats(statsYear, statsMonth);
+  }, 86400000); // refresh once a day (ECB rates update daily)
+  buildEditCatGrid();
+  setupEditToggles();
+  $('edit-scrim').addEventListener('click', closeEditModal);
+  $('btn-edit-cancel').addEventListener('click', closeEditModal);
+  $('btn-edit-save').addEventListener('click', saveEdit);
+
+  subscribeCurrentMonth();
+}
+
+function buildCatGrid() {
+  const grid = $('cat-grid');
+  CATS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'cat-chip' + (c.id === selectedCat ? ' selected' : '');
+    el.dataset.cat = c.id;
+    el.innerHTML = `<span class="cat-icon">${c.icon}</span><span>${c.label}</span>`;
+    el.addEventListener('click', () => {
+      selectedCat = c.id;
+      grid.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+    grid.appendChild(el);
+  });
+}
+
+function setupCurrencyToggle() {
+  document.querySelectorAll('#currency-toggle .toggle-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      selectedCur = btn.dataset.cur;
+      document.querySelectorAll('#currency-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      $('amount-symbol').textContent = CURRENCIES[selectedCur].symbol;
+    }));
+}
+
+function setupWhoToggle() {
+  document.querySelectorAll('#who-toggle .toggle-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      selectedWho = btn.dataset.who;
+      document.querySelectorAll('#who-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }));
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchView(btn.dataset.view)));
+}
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  $(`view-${name}`).classList.add('active');
+  document.querySelector(`.tab-btn[data-view="${name}"]`).classList.add('active');
+  if (name === 'list')  renderList(currentYear, currentMonth, listExpenses);
+  if (name === 'stats') renderStats(statsYear, statsMonth);
+}
+
+// ─── Firebase ───
+let unsubscribe = null;
+
+function subscribeCurrentMonth() {
+  if (unsubscribe) unsubscribe();
+  const ref = db.ref(`expenses/${currentYear}/${currentMonth}`);
+  const handler = snap => {
+    listExpenses = snap.val() || {};
+    if ($('view-list').classList.contains('active'))
+      renderList(currentYear, currentMonth, listExpenses);
+  };
+  ref.on('value', handler);
+  unsubscribe = () => ref.off('value', handler);
+}
+
+function loadMonth(year, month) {
+  return db.ref(`expenses/${year}/${month}`).once('value').then(s => s.val() || {});
+}
+
+async function changeListMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+  if (currentMonth < 1)  { currentMonth = 12; currentYear--; }
+  subscribeCurrentMonth();
+  listExpenses = await loadMonth(currentYear, currentMonth);
+  renderList(currentYear, currentMonth, listExpenses);
+}
+
+async function changeStatsMonth(dir) {
+  statsMonth += dir;
+  if (statsMonth > 12) { statsMonth = 1; statsYear++; }
+  if (statsMonth < 1)  { statsMonth = 12; statsYear--; }
+  renderStats(statsYear, statsMonth);
+}
+
+// ─── Save ───
+async function saveExpense() {
+  const amount = parseFloat($('amount-input').value);
+  if (!amount || amount <= 0) { showToast('⚠️ Enter an amount'); return; }
+  const dateVal = $('date-input').value || today();
+  const [y, m]  = dateVal.split('-').map(Number);
+  const desc    = $('desc-input').value.trim() || catMap[selectedCat].label;
+  await db.ref(`expenses/${y}/${m}`).push({ amount, desc, cat: selectedCat, who: selectedWho, currency: selectedCur, date: dateVal, ts: Date.now() });
+  showToast('✓ Saved!');
+  $('amount-input').value = '';
+  $('desc-input').value   = '';
+  $('date-input').value   = today();
+}
+
+// ─── Edit Modal ───
+let editState = null, editCat = 'food', editWho = 'person1', editCur = 'AED';
+
+function buildEditCatGrid() {
+  const grid = $('edit-cat-grid');
+  CATS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'cat-chip';
+    el.dataset.cat = c.id;
+    el.innerHTML = `<span class="cat-icon">${c.icon}</span><span>${c.label}</span>`;
+    el.addEventListener('click', () => {
+      editCat = c.id;
+      grid.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+    grid.appendChild(el);
+  });
+}
+
+function setupEditToggles() {
+  document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      editCur = btn.dataset.cur;
+      document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      $('edit-amount-symbol').textContent = CURRENCIES[editCur].symbol;
+    }));
+  document.querySelectorAll('#edit-who-toggle .toggle-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      editWho = btn.dataset.who;
+      document.querySelectorAll('#edit-who-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }));
+}
+
+function setupReportCurrencyToggle() {
+  document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      reportCur = btn.dataset.cur;
+      document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStats(statsYear, statsMonth);
+    }));
+}
+
+window.openEditModal = function(year, month, id) {
+  const exp = listExpenses[id];
+  if (!exp) return;
+  editState = { year, month, id };
+
+  editCur = exp.currency || config.defaultCurrency || 'AED';
+  $('edit-amount').value = exp.amount;
+  $('edit-amount-symbol').textContent = CURRENCIES[editCur].symbol;
+  document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cur === editCur));
+
+  editCat = exp.cat || 'other';
+  document.querySelectorAll('#edit-cat-grid .cat-chip').forEach(el =>
+    el.classList.toggle('selected', el.dataset.cat === editCat));
+
+  editWho = exp.who || 'person1';
+  $('edit-who-btn-1').textContent = config.name1;
+  $('edit-who-btn-2').textContent = config.name2;
+  document.querySelectorAll('#edit-who-toggle .toggle-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.who === editWho));
+
+  $('edit-desc').value = exp.desc || '';
+  $('edit-date').value = exp.date || today();
+
+  $('edit-scrim').classList.add('open');
+  $('edit-modal').classList.add('open');
+};
+
+function closeEditModal() {
+  $('edit-scrim').classList.remove('open');
+  $('edit-modal').classList.remove('open');
+  editState = null;
+}
+
+async function saveEdit() {
+  if (!editState) return;
+  const amount = parseFloat($('edit-amount').value);
+  if (!amount || amount <= 0) { showToast('⚠️ Enter an amount'); return; }
+  const dateVal = $('edit-date').value || today();
+  const [y, m]  = dateVal.split('-').map(Number);
+  const desc    = $('edit-desc').value.trim() || catMap[editCat].label;
+  const { year, month, id } = editState;
+
+  if (y !== year || m !== month) {
+    await db.ref(`expenses/${y}/${m}`).push({ amount, desc, cat: editCat, who: editWho, currency: editCur, date: dateVal, ts: Date.now() });
+    await db.ref(`expenses/${year}/${month}/${id}`).remove();
+  } else {
+    await db.ref(`expenses/${year}/${month}/${id}`).update({ amount, desc, cat: editCat, who: editWho, currency: editCur, date: dateVal });
+  }
+  closeEditModal();
+  showToast('✓ Updated!');
+}
+
+// ─── Delete ───
+window.deleteExpense = async function(year, month, id) {
+  if (!confirm('Delete this expense?')) return;
+  await db.ref(`expenses/${year}/${month}/${id}`).remove();
+};
+
+// ─── Render List ───
+function renderList(year, month, data) {
+  $('month-title').textContent = `${MONTHS[month-1]} ${year}`;
+
+  const items   = Object.entries(data).map(([id, e]) => ({ id, ...e }));
+  const budget  = config.budget || 0;
+  const primCur = config.defaultCurrency || 'AED';
+
+  // Per-currency totals
+  const totals = {};
+  items.forEach(e => {
+    const c = e.currency || primCur;
+    totals[c] = (totals[c] || 0) + e.amount;
+  });
+
+  // Budget card HTML
+  const primTotal = totals[primCur] || 0;
+  let html = `<div class="cur-total-row">
+    <div>
+      <div class="cur-total-primary">${fmt(primTotal, primCur)}</div>
+      ${budget > 0 ? `<div class="cur-total-limit">/ ${fmt(budget, primCur)} budget</div>` : ''}
+    </div>
+    <span style="font-size:22px">${CURRENCIES[primCur].flag}</span>
+  </div>`;
+
+  if (budget > 0) {
+    const pct = Math.min(primTotal / budget, 1);
+    const cls = pct > 0.9 ? ' danger' : pct > 0.7 ? ' warning' : '';
+    html += `<div class="progress-bar"><div class="progress-fill${cls}" style="width:${pct*100}%"></div></div>`;
+  }
+
+  Object.entries(totals).filter(([c]) => c !== primCur).forEach(([c, amt]) => {
+    html += `<div class="cur-total-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <div class="cur-total-secondary">${fmt(amt, c)}</div>
+      <span style="font-size:20px">${CURRENCIES[c]?.flag || c}</span>
+    </div>`;
+  });
+
+  const p1 = items.filter(e => e.who === 'person1' && (e.currency || primCur) === primCur).reduce((s,e) => s+e.amount, 0);
+  const p2 = items.filter(e => e.who === 'person2' && (e.currency || primCur) === primCur).reduce((s,e) => s+e.amount, 0);
+  html += `<div class="split-row">
+    <div class="split-chip"><span>${escHtml(config.name1)}</span><span>${fmt(p1, primCur)}</span></div>
+    <div class="split-chip"><span>${escHtml(config.name2)}</span><span>${fmt(p2, primCur)}</span></div>
+  </div>`;
+
+  $('budget-card').innerHTML = html;
+
+  // Expense list
+  const el = $('expense-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><p>No expenses for this month</p></div>`;
+    return;
+  }
+
+  const byDate = {};
+  items.sort((a,b) => b.ts - a.ts).forEach(e => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+
+  el.innerHTML = Object.entries(byDate)
+    .sort(([a],[b]) => b.localeCompare(a))
+    .map(([date, exps]) => `
+      <div class="day-group">
+        <div class="day-label">${fmtDate(date)}</div>
+        ${exps.map(e => {
+          const cat     = catMap[e.cat] || catMap.other;
+          const whoName = e.who === 'person1' ? config.name1 : config.name2;
+          const cur     = e.currency || primCur;
+          const eurLine = cur !== 'EUR'
+            ? `<div class="expense-eur">(${fmtEur(toEur(e.amount, cur))})</div>`
+            : '';
+          return `<div class="expense-item">
+            <div class="expense-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
+            <div class="expense-info">
+              <div class="expense-desc">${escHtml(e.desc)}</div>
+              <div class="expense-meta">${cat.label}</div>
+            </div>
+            <div class="expense-right">
+              <div class="expense-amount">${fmt(e.amount, cur)}</div>
+              ${eurLine}
+              <div class="expense-who">${escHtml(whoName)}</div>
+            </div>
+            <button class="expense-edit" onclick="openEditModal(${year},${month},'${e.id}')">✏️</button>
+            <button class="expense-del" onclick="deleteExpense(${year},${month},'${e.id}')">×</button>
+          </div>`;
+        }).join('')}
+      </div>`).join('');
+}
+
+// ─── Settings ───
+function buildCatBudgetInputs() {
+  const primCur = config.defaultCurrency || 'AED';
+  $('settings-cur-label').textContent = primCur;
+  const container = $('cat-budget-inputs');
+  container.innerHTML = '';
+  CATS.forEach(c => {
+    const saved = (config.categoryBudgets || {})[c.id] || '';
+    const row = document.createElement('div');
+    row.className = 'budget-input-row';
+    row.innerHTML = `
+      <div class="budget-input-icon" style="background:${c.color}22">${c.icon}</div>
+      <span class="budget-input-label">${c.label}</span>
+      <input type="number" class="budget-input-field" data-cat="${c.id}"
+             value="${saved}" placeholder="—" inputmode="decimal" min="0">
+    `;
+    container.appendChild(row);
+  });
+}
+
+async function saveCategoryBudgets() {
+  const budgets = {};
+  document.querySelectorAll('.budget-input-field').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (v > 0) budgets[inp.dataset.cat] = v;
+  });
+  config.categoryBudgets = budgets;
+  await db.ref('config/categoryBudgets').set(budgets);
+  showToast('✓ Budgets saved!');
+}
+
+// ─── Render Stats ───
+async function renderStats(year, month) {
+  $('month-title-s').textContent = `${MONTHS[month-1]} ${year}`;
+
+  const data    = (year === currentYear && month === currentMonth) ? listExpenses : await loadMonth(year, month);
+  const primCur = config.defaultCurrency || 'AED';
+  const items   = Object.values(data);
+  const totalEur = items.reduce((s, e) => s + toEur(e.amount, e.currency || primCur), 0);
+
+  // By category (converted to EUR)
+  const byCat = {};
+  items.forEach(e => {
+    const eur = toEur(e.amount, e.currency || primCur);
+    byCat[e.cat] = (byCat[e.cat] || 0) + eur;
+  });
+  const catEntries = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+
+  $('stats-pie-title').textContent = `By category — all currencies in ${reportCur}`;
+
+  if (pieChart) { pieChart.destroy(); pieChart = null; }
+
+  if (catEntries.length) {
+    pieChart = new Chart($('pie-chart'), {
+      type: 'doughnut',
+      data: {
+        labels: catEntries.map(([id]) => catMap[id]?.label || id),
+        datasets: [{
+          data: catEntries.map(([,v]) => v),
+          backgroundColor: catEntries.map(([id]) => catMap[id]?.color || '#888'),
+          borderWidth: 0, hoverOffset: 8,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${fmtReport(ctx.raw)}  (${totalEur ? Math.round(ctx.raw/totalEur*100) : 0}%)` } },
+        },
+      },
+    });
+  }
+
+  const noData = '<div style="color:var(--sub);padding:16px 0;text-align:center;font-size:14px">No expenses this month</div>';
+
+  const catBudgets = config.categoryBudgets || {};
+
+  $('cat-breakdown').innerHTML = catEntries.length
+    ? catEntries.map(([id, eur]) => {
+        const cat         = catMap[id] || catMap.other;
+        const budgetPrim  = catBudgets[id] || 0;
+        const budgetEur   = budgetPrim > 0 ? toEur(budgetPrim, primCur) : 0;
+        const pctOfTotal  = totalEur ? Math.round(eur / totalEur * 100) : 0;
+        const pctOfBudget = budgetEur > 0 ? eur / budgetEur : 0;
+        const overBudget  = budgetEur > 0 && eur > budgetEur;
+        const barColor    = overBudget ? 'var(--danger)' : cat.color;
+
+        const budgetBar = budgetEur > 0 ? `
+          <div class="cat-budget-bar-row">
+            <div class="cat-budget-bar-wrap">
+              <div class="cat-budget-bar-fill" style="width:${Math.min(pctOfBudget,1)*100}%;background:${barColor}"></div>
+            </div>
+            <span class="cat-budget-label-small">${fmtReport(eur)} / ${fmtReport(budgetEur)} (${Math.round(pctOfBudget*100)}%)${overBudget ? ' ⚠️' : ''}</span>
+          </div>` : '';
+
+        return `<div class="cat-stat-group">
+          <div class="cat-stat-row">
+            <div class="cat-stat-dot" style="background:${cat.color}"></div>
+            <span class="cat-stat-name">${cat.icon} ${cat.label}</span>
+            <span class="cat-stat-amount">${fmtReport(eur)}</span>
+            <span class="cat-stat-pct">${pctOfTotal}%</span>
+          </div>
+          ${budgetBar}
+        </div>`;
+      }).join('')
+    : noData;
+
+  const p1eur = items.filter(e=>e.who==='person1').reduce((s,e) => s + toEur(e.amount, e.currency || primCur), 0);
+  const p2eur = items.filter(e=>e.who==='person2').reduce((s,e) => s + toEur(e.amount, e.currency || primCur), 0);
+  $('person-breakdown').innerHTML = items.length ? `
+    <div class="cat-stat-row">
+      <div class="cat-stat-dot" style="background:#6366f1"></div>
+      <span class="cat-stat-name">${escHtml(config.name1)}</span>
+      <span class="cat-stat-amount">${fmtReport(p1eur)}</span>
+      <span class="cat-stat-pct">${totalEur ? Math.round(p1eur/totalEur*100) : 0}%</span>
+    </div>
+    <div class="cat-stat-row">
+      <div class="cat-stat-dot" style="background:#ec4899"></div>
+      <span class="cat-stat-name">${escHtml(config.name2)}</span>
+      <span class="cat-stat-amount">${fmtReport(p2eur)}</span>
+      <span class="cat-stat-pct">${totalEur ? Math.round(p2eur/totalEur*100) : 0}%</span>
+    </div>` : noData;
+
+  // Show exchange rates used
+  const rateAed = (1 / fxToEur.AED).toFixed(2);
+  const rateUsd = (1 / fxToEur.USD).toFixed(4);
+  const fxTime  = fmtFxTime();
+  const fxLabel = fxFetched ? `live · updated at ${fxTime}` : 'offline fallback';
+  $('fx-note').textContent = `Rates (${fxLabel}): 1 EUR = AED ${rateAed} / USD ${rateUsd}`;
+}
+
+boot();
+</script>
+</body>
+</html>
