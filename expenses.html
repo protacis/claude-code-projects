@@ -699,7 +699,13 @@ async function boot() {
     config = snap.val();
     if (!config) { localStorage.removeItem('familyId'); familyId=null; showWelcome(); return; }
     if (!config?.pinHash) { initSetup(); return; }
-    if (config.isDemo) { isDemoMode=true; }
+    if (config.isDemo) {
+      isDemoMode=true;
+      config = await migrateIfNeeded(config);
+      users = config.users || [];
+      showWho();
+      return;
+    }
     config = await migrateIfNeeded(config);
     users = config.users || [];
     initPIN();
