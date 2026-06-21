@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json", ".firebaserc", ".git/**",
+      "*.ps1", "*.bat", "deploy.js",
+      "3d Models/**", "gym_nostyle.html",
+      "tictactoe.html", "snake.html", "meals.html",
+      "CHANGELOG.md", "CLAUDE.md", "memory/**"
+    ],
+    "headers": [
+      { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ],
+    "rewrites": [{ "source": "/", "destination": "/expenses.html" }]
+  }
+}

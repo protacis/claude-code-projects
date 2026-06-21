@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Expenses</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="theme-color" content="#6366f1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
@@ -350,6 +353,9 @@
       <button class="month-nav-btn" id="btn-next-month">›</button>
     </div>
     <div class="budget-card" id="budget-card"></div>
+    <div style="padding:0 0 10px 0">
+      <input id="list-search" type="search" placeholder="Search expenses…" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:inherit;outline:none" oninput="renderListFiltered()">
+    </div>
     <div id="expense-list"></div>
   </div>
 
@@ -1096,7 +1102,7 @@ async function changeStatsMonth(dir) {
 }
 
 // ─── Home ───
-function renderHome() {
+async function renderHome() {
   const now=new Date(), h=now.getHours();
   const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   const uname=users.find(u=>u.id===activeUserId)?.name||'';
@@ -1123,13 +1129,32 @@ function renderHome() {
   const daysPassed=now.getMonth()+1===currentMonth&&now.getFullYear()===currentYear?now.getDate():new Date(currentYear,currentMonth,0).getDate();
   const avgDay=daysPassed>0?totalPrim/daysPassed:0;
 
+  // month comparison
+  let prevM=currentMonth-1, prevY=currentYear;
+  if(prevM<1){prevM=12;prevY--;}
+  const prevItems=Object.values(await loadMonth(prevY,prevM));
+  const prevTotal=prevItems.reduce((s,e)=>{
+    const cur=e.currency||primCur;
+    return s+(cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1));
+  },0);
+  let compHtml='';
+  if(prevTotal>0&&totalPrim>0){
+    const diff=totalPrim-prevTotal, pct=Math.round(Math.abs(diff)/prevTotal*100);
+    const up=diff>0;
+    compHtml=`<span style="font-size:13px;font-weight:600;color:${up?'var(--danger)':'var(--success)'}">
+      ${up?'↑':'↓'} ${pct}% vs ${MONTHS[prevM-1]}</span>`;
+  }
+
   const byCat={};
   items.forEach(e=>{ const eur=toEur(e.amount,e.currency||primCur); byCat[e.cat]=(byCat[e.cat]||0)+eur; });
   const topCats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,3);
 
   $('home-content').innerHTML=`
     <div class="stats-card" style="margin-bottom:14px">
-      <h3>${MONTHS[currentMonth-1]} ${currentYear}</h3>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <h3>${MONTHS[currentMonth-1]} ${currentYear}</h3>
+        ${compHtml}
+      </div>
       <div class="home-total-amount">${fmt(totalPrim,primCur)}</div>
       ${budget>0?`<div class="home-total-sub">${fmt(budget-totalPrim,primCur)} remaining of ${fmt(budget,primCur)}</div>
         <div class="progress-bar" style="margin-top:12px"><div class="progress-fill${cls}" style="width:${budgetPct*100}%"></div></div>`
@@ -1378,7 +1403,18 @@ window.deleteExpense=async function(year,month,id) {
 };
 
 // ─── Render List ───
-function renderList(year,month,data) {
+function renderListFiltered() {
+  const q=($('list-search')?.value||'').trim().toLowerCase();
+  if(!q){ renderList(currentYear,currentMonth,listExpenses); return; }
+  const filtered=Object.fromEntries(
+    Object.entries(listExpenses).filter(([,e])=>
+      (e.desc||'').toLowerCase().includes(q) ||
+      (catMap[e.cat]?.label||'').toLowerCase().includes(q)
+    )
+  );
+  renderList(currentYear,currentMonth,filtered,true);
+}
+function renderList(year,month,data,isFiltered=false) {
   $('month-title').textContent=`${MONTHS[month-1]} ${year}`;
   const items=Object.entries(data).map(([id,e])=>({id,...e}));
   const budget=config.budget||0, primCur=config.defaultCurrency||'AED';
@@ -1794,6 +1830,11 @@ async function startDemo() {
 }
 
 boot();
+
+// PWA service worker
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
 
 // Prevent double-tap zoom on iOS (viewport meta alone is not enough)
 let _lastTap = 0;
