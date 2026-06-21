@@ -321,7 +321,7 @@
   <!-- Add -->
   <div id="view-add" class="view">
     <div class="amount-wrap">
-      <span class="amount-symbol" id="amount-symbol">AED</span><input type="text" id="amount-input" placeholder="0" inputmode="decimal">
+      <span class="amount-symbol" id="amount-symbol">AED</span><input type="text" id="amount-input" placeholder="" inputmode="decimal">
     </div>
     <div class="section-label">Currency</div>
     <div class="toggle-row" id="currency-toggle">
@@ -465,7 +465,7 @@
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
         <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 21:56</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 22:00</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
     <!-- About -->
@@ -520,7 +520,7 @@
   <div class="modal-title">Edit Expense</div>
   <div class="amount-wrap" style="padding:0 0 16px">
     <span class="amount-symbol" id="edit-amount-symbol">AED</span>
-    <input type="text" id="edit-amount" placeholder="0" inputmode="decimal"
+    <input type="text" id="edit-amount" placeholder="" inputmode="decimal"
       style="font-size:48px;font-weight:700;width:210px;border:none;border-bottom:2.5px solid var(--border);background:transparent;color:var(--text);text-align:center;font-family:inherit;outline:none;padding-bottom:4px"
       onfocus="this.select()">
   </div>
@@ -1225,7 +1225,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 21:56</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 22:00</p>
   `;
 
   updateNotifBadge();
@@ -1890,7 +1890,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '21:56';
+const _THIS_VERSION = '22:00';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
