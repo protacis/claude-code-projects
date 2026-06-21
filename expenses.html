@@ -1136,6 +1136,7 @@ async function saveExpense() {
   if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
   if(!selectedWho){showToast('⚠️ Select who paid');return;}
   const dateVal=$('date-input').value||today();
+  if(dateVal>today()&&!confirm(`The date you entered (${fmtDate(dateVal)}) is in the future. Are you sure?`)){return;}
   const [y,m]=dateVal.split('-').map(Number);
   const desc=$('desc-input').value.trim()||catMap[selectedCat].label;
   const expData={amount,desc,cat:selectedCat,currency:selectedCur,date:dateVal,ts:Date.now()};
