@@ -252,6 +252,11 @@
   <div class="screen-logo">💰</div>
   <div class="screen-title">Setup</div>
   <div class="screen-sub">Fill in your details<br>to get started</div>
+  <div class="input-group">
+    <label>Family code <span style="font-weight:400;text-transform:none;letter-spacing:0">(others use this to join)</span></label>
+    <input type="text" id="setup-family-code" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.12em;font-size:20px;text-align:center">
+    <div style="font-size:11px;color:var(--sub);margin-top:5px">Letters and numbers only, 4–12 characters</div>
+  </div>
   <div class="input-group"><label>Person 1 name</label><input type="text" id="setup-name1" placeholder="e.g. Byron" autocomplete="off" autocorrect="off"></div>
   <div class="input-group"><label>Person 2 name</label><input type="text" id="setup-name2" placeholder="e.g. Androniki" autocomplete="off" autocorrect="off"></div>
   <div class="input-group"><label>Primary currency</label>
@@ -700,8 +705,6 @@ async function boot() {
 function showWelcome() {
   showScreen('screen-welcome');
   $('btn-create-family').onclick = () => {
-    familyId = genFamilyId();
-    localStorage.setItem('familyId', familyId);
     initSetup();
   };
   $('btn-join-family').onclick = () => {
@@ -749,11 +752,28 @@ async function migrateIfNeeded(cfg) {
 // ─── Setup ───
 function initSetup() {
   showScreen('screen-setup');
+  // pre-fill code field with random suggestion
+  const suggested = genFamilyId();
+  $('setup-family-code').value = suggested;
+  // force uppercase as user types
+  $('setup-family-code').addEventListener('input', e => {
+    const pos = e.target.selectionStart;
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    e.target.setSelectionRange(pos, pos);
+  });
+
   $('btn-setup-save').addEventListener('click', async () => {
+    const codeRaw = $('setup-family-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(codeRaw.length<4){showToast('Family code must be at least 4 characters');return;}
     const name1 = $('setup-name1').value.trim()||'Person 1';
     const name2 = $('setup-name2').value.trim()||'Person 2';
     const pin   = $('setup-pin').value.trim();
     if (!/^\d{4}$/.test(pin)) { showToast('PIN must be 4 digits'); return; }
+    // check uniqueness
+    const existing = await db.ref(`families/${codeRaw}/config`).once('value');
+    if(existing.val()){showToast('❌ Code already taken — choose another');return;}
+    familyId = codeRaw;
+    localStorage.setItem('familyId', familyId);
     const id1='u'+Date.now(), id2='u'+(Date.now()+1);
     const pinHash = await sha256(pin);
     config = {
