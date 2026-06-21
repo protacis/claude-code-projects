@@ -47,7 +47,7 @@
     .numpad-btn.empty{visibility:hidden}
     .numpad-btn.delete{font-size:20px}
 
-    .btn-primary{width:100%;max-width:360px;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;transition:opacity .2s,transform .1s}
+    .btn-primary{width:100%;max-width:360px;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;margin-left:auto;margin-right:auto;display:block;transition:opacity .2s,transform .1s}
     .btn-primary:active{opacity:.85;transform:scale(.99)}
 
     /* Who screen */
@@ -1060,6 +1060,8 @@ function setupTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 }
 function switchView(name) {
+  const prev=document.querySelector('.tab-btn.active')?.dataset.view;
+  if(prev==='settings' && name!=='settings') collapseAllAcc();
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   $(`view-${name}`).classList.add('active');
@@ -1067,7 +1069,13 @@ function switchView(name) {
   if(name==='home')  renderHome();
   if(name==='list')  renderList(currentYear,currentMonth,listExpenses);
   if(name==='stats') renderStats(statsYear,statsMonth);
-  if(name==='settings') buildUsersSection(); buildRecurringSection();
+  if(name==='settings') { buildUsersSection(); buildRecurringSection(); }
+}
+function collapseAllAcc() {
+  ['appearance','users','security','budget','recurring','data'].forEach(id=>{
+    $('acc-'+id)?.classList.remove('open');
+    $('arr-'+id)?.classList.remove('open');
+  });
 }
 
 // ─── Firebase ───
