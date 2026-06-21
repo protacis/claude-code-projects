@@ -270,6 +270,15 @@
     .cat-budget-label-small { font-size: 11px; color: var(--sub); white-space: nowrap; }
     .fx-note { font-size: 11px; color: var(--sub); text-align: center; }
 
+    /* Who screen */
+    .who-btn {
+      width: 100%; max-width: 360px; padding: 22px 16px; margin-bottom: 14px;
+      background: var(--surface); border: 2px solid var(--border); border-radius: 18px;
+      color: var(--text); font-family: inherit; font-size: 20px; font-weight: 600;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    }
+    .who-btn:active { border-color: var(--accent); background: rgba(99,102,241,0.1); }
+
     /* Settings view */
     .budget-input-row {
       display: flex; align-items: center; gap: 12px;
@@ -361,6 +370,15 @@
     <button class="numpad-btn" data-n="0">0</button>
     <button class="numpad-btn delete" id="btn-del">⌫</button>
   </div>
+</div>
+
+<!-- Who -->
+<div id="screen-who" class="screen hidden">
+  <div class="screen-logo">👋</div>
+  <div class="screen-title" id="who-greeting">Hi!</div>
+  <div class="screen-sub">Who's using the app?</div>
+  <button class="who-btn" id="who-btn-p1"></button>
+  <button class="who-btn" id="who-btn-p2"></button>
 </div>
 
 <!-- App -->
@@ -635,6 +653,7 @@ let pieChart     = null;
 let trendsChart  = null;
 let pinEntry     = '';
 let reportCur    = 'EUR';
+let activeUser   = 'person1';
 
 // ─── Helpers ───
 const $ = id => document.getElementById(id);
@@ -658,7 +677,7 @@ function fmtDate(dateStr) {
 function today() { return new Date().toISOString().slice(0, 10); }
 
 function showScreen(id) {
-  ['screen-setup','screen-pin','screen-app','screen-error'].forEach(s =>
+  ['screen-setup','screen-pin','screen-who','screen-app','screen-error'].forEach(s =>
     $(s).classList.toggle('hidden', s !== id));
 }
 
@@ -724,13 +743,26 @@ async function pressDigit(n) {
   if (pinEntry.length < 4) return;
   const hash = await sha256(pinEntry);
   if (hash === config.pinHash) {
-    launchApp();
+    showWho();
   } else {
     const sub = $('pin-sub');
     sub.textContent = 'Wrong PIN — try again';
     sub.style.color = 'var(--danger)';
     setTimeout(() => { pinEntry = ''; updateDots(); sub.textContent = 'Enter your PIN'; sub.style.color = ''; }, 900);
   }
+}
+
+// ─── Who Screen ───
+function showWho() {
+  const now  = new Date();
+  const hour = now.getHours();
+  const greet = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
+  $('who-greeting').textContent = greet;
+  $('who-btn-p1').textContent = config.name1;
+  $('who-btn-p2').textContent = config.name2;
+  showScreen('screen-who');
+  $('who-btn-p1').onclick = () => { activeUser = 'person1'; launchApp(); };
+  $('who-btn-p2').onclick = () => { activeUser = 'person2'; launchApp(); };
 }
 
 // ─── Launch App ───
@@ -780,8 +812,9 @@ function launchApp() {
 function renderHome() {
   const now  = new Date();
   const hour = now.getHours();
-  const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  $('home-greeting').textContent = `${greet}, ${config.name1}! 👋`;
+  const greet    = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const userName = activeUser === 'person1' ? config.name1 : config.name2;
+  $('home-greeting').textContent = `${greet}, ${userName}! 👋`;
   $('home-period').textContent   = `${MONTHS[currentMonth-1]} ${currentYear}`;
 
   const primCur = config.defaultCurrency || 'AED';
