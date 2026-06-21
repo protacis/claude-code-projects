@@ -812,12 +812,10 @@ function initPIN() {
   pinEntry = ''; updateDots();
   if (_pinListenersAdded) return;
   _pinListenersAdded = true;
-  function addTap(el, fn) {
-    el.addEventListener('touchstart', e=>{ e.preventDefault(); fn(); }, { passive:false });
-    el.addEventListener('click', fn);
-  }
-  document.querySelectorAll('.numpad-btn[data-n]').forEach(btn=>addTap(btn,()=>pressDigit(btn.dataset.n)));
-  addTap($('btn-del'), ()=>{ pinEntry=pinEntry.slice(0,-1); updateDots(); });
+  document.querySelectorAll('.numpad-btn[data-n]').forEach(btn=>
+    btn.addEventListener('pointerdown', ()=>pressDigit(btn.dataset.n))
+  );
+  $('btn-del').addEventListener('pointerdown', ()=>{ pinEntry=pinEntry.slice(0,-1); updateDots(); });
 }
 function updateDots() { for(let i=0;i<4;i++) $(`dot-${i}`).classList.toggle('filled',i<pinEntry.length); }
 
