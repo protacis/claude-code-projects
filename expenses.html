@@ -1003,10 +1003,9 @@ function renderHome() {
   const budget=config.budget||0;
 
   const totalPrim=items.reduce((s,e)=>{
-    if(e.split) return s+e.split.reduce((ss,sp)=>ss+(sp.userId===activeUserId?toEur(sp.amount,e.currency||primCur)/(fxToEur[primCur]||1):0),0);
     const cur=e.currency||primCur;
-    if(resolveUserId(e.who)===activeUserId) return s+(cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1));
-    return s;
+    const amt=cur===primCur?e.amount:toEur(e.amount,cur)/(fxToEur[primCur]||1);
+    return s+amt;
   },0);
 
   const totalEur=items.reduce((s,e)=>{
