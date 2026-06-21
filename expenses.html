@@ -134,9 +134,9 @@
     .expense-info{flex:1;min-width:0}
     .expense-desc{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .expense-meta{font-size:12px;color:var(--sub);margin-top:2px}
-    .expense-right{text-align:right;flex-shrink:0}
+    .expense-right{text-align:right;flex-shrink:0;max-width:130px}
     .expense-amount{font-size:16px;font-weight:700}
-    .expense-sub{font-size:11px;color:var(--sub);margin-top:1px}
+    .expense-sub{font-size:11px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .expense-del,.expense-edit{width:30px;height:30px;border-radius:50%;border:none;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .expense-del{font-size:18px}
     .expense-del:active{color:var(--danger)}
@@ -609,6 +609,7 @@ function fmtReport(e) { return fmt(eurToReport(e), reportCur); }
 function fmtFxTime()  { return fxFetchedAt ? fxFetchedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : null; }
 function cssVar(n)    { return getComputedStyle(document.body).getPropertyValue(n).trim(); }
 function round2(n)    { return Math.round(n*100)/100; }
+function parseAmt(v)  { return parseFloat(String(v).replace(',','.')) || 0; }
 
 // ─── Theme ───
 function applyTheme(theme) {
@@ -977,7 +978,7 @@ function buildSplitRows(rowsId, context) {
   const detailsGetter = ()=> context==='edit'?editSplitDetails:context==='rec'?recSplitDetails:splitDetails;
   const detailsSetter = (v)=>{ if(context==='edit') editSplitDetails=v; else if(context==='rec') recSplitDetails=v; else splitDetails=v; };
   const amountInput = context==='edit'?'edit-amount':context==='rec'?'rec-amount':'amount-input';
-  const amount = parseFloat($(amountInput)?.value)||0;
+  const amount = parseAmt($(amountInput)?.value);
   const au = activeUsers();
 
   let details = detailsGetter();
@@ -999,7 +1000,7 @@ function buildSplitRows(rowsId, context) {
         ${escHtml(u.name)}
       </label>
       <input type="number" class="split-amount-input" value="${s.amount.toFixed(2)}" inputmode="decimal" step="0.01"
-        onchange="updateSplitAmount('${s.userId}','${context}',parseFloat(this.value)||0)">
+        onchange="updateSplitAmount('${s.userId}','${context}',parseAmt(this.value))">
     </div>`;
   }).join('');
 
@@ -1024,7 +1025,7 @@ function toggleSplitUser(userId, context, checked) {
 window.equalSplit = function(context) {
   const amountInput = context==='edit'?'edit-amount':context==='rec'?'rec-amount':'amount-input';
   const rowsId = context==='edit'?'edit-split-user-rows':context==='rec'?'rec-split-user-rows':'split-user-rows';
-  const amount = parseFloat($(amountInput)?.value)||0;
+  const amount = parseAmt($(amountInput)?.value);
   const details = context==='edit'?editSplitDetails:context==='rec'?recSplitDetails:splitDetails;
   const sel = details.filter(d=>d.selected);
   if (!sel.length) return;
@@ -1039,7 +1040,7 @@ function updateSplitAmount(userId, context, val) {
   const details     = context==='edit'?editSplitDetails:context==='rec'?recSplitDetails:splitDetails;
   const rowsId      = context==='edit'?'edit-split-user-rows':context==='rec'?'rec-split-user-rows':'split-user-rows';
   const amountInput = context==='edit'?'edit-amount':context==='rec'?'rec-amount':'amount-input';
-  const total = parseFloat($(amountInput)?.value)||0;
+  const total = parseAmt($(amountInput)?.value);
   const s = details.find(d=>d.userId===userId); if(!s) return;
   s.amount = round2(val); s.pct = total>0 ? round2(val/total*100) : 0;
   // auto-fill remainder into last selected person (not the one just edited)
@@ -1313,7 +1314,7 @@ window.skipPendingRecurring = async function(recId, idx) {
 
 // ─── Save Expense ───
 async function saveExpense() {
-  const amount=parseFloat($('amount-input').value);
+  const amount=parseAmt($('amount-input').value);
   if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
   if(!selectedWho){showToast('⚠️ Select who paid');return;}
   const dateVal=$('date-input').value||today();
@@ -1379,7 +1380,7 @@ function closeEditModal() { $('edit-scrim').classList.remove('open'); $('edit-mo
 
 async function saveEdit() {
   if(!editState) return;
-  const amount=parseFloat($('edit-amount').value);
+  const amount=parseAmt($('edit-amount').value);
   if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
   const dateVal=$('edit-date').value||today();
   const [y,m]=dateVal.split('-').map(Number);
@@ -1443,7 +1444,7 @@ function renderList(year,month,data,isFiltered=false) {
     ${exps.map(e=>{
       const cat=catMap[e.cat]||catMap.other, cur=e.currency||primCur;
       const isSplit=!!e.split;
-      const whoLine=isSplit?`🔀 ${e.split.map(s=>`${getUserName(s.userId)}: ${fmt(s.amount,cur)}`).join(' · ')}`:`${getUserName(e.who)}`;
+      const whoLine=isSplit?`🔀 ${e.split.map(s=>getUserName(s.userId)).join(' · ')}`:`${getUserName(e.who)}`;
       return`<div class="expense-item">
         <div class="expense-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
         <div class="expense-info"><div class="expense-desc">${escHtml(e.desc)}</div><div class="expense-meta">${cat.label}</div></div>
@@ -1706,7 +1707,7 @@ function closeRecModal() { $('rec-scrim').classList.remove('open'); $('rec-modal
 
 async function saveRecurring() {
   const desc=$('rec-desc').value.trim();
-  const amount=parseFloat($('rec-amount').value);
+  const amount=parseAmt($('rec-amount').value);
   const currency=$('rec-currency').value;
   const day=parseInt($('rec-day').value)||1;
   if(!desc){showToast('Enter description');return;}
