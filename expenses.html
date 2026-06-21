@@ -299,7 +299,7 @@
 <!-- App -->
 <div id="screen-app" class="screen hidden">
 
-  <div id="demo-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:6px;z-index:200;letter-spacing:.04em">✨ DEMO MODE — changes are not saved &nbsp;<button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:inherit;cursor:pointer">Exit</button></div>
+  <div id="demo-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:6px;z-index:200;letter-spacing:.04em">✨ Demo family — changes are saved &nbsp;<button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:inherit;cursor:pointer">Exit</button></div>
 
   <!-- Home -->
   <div id="view-home" class="view active">
@@ -691,6 +691,7 @@ async function boot() {
     config = snap.val();
     if (!config) { localStorage.removeItem('familyId'); familyId=null; showWelcome(); return; }
     if (!config?.pinHash) { initSetup(); return; }
+    if (config.isDemo) { isDemoMode=true; }
     config = await migrateIfNeeded(config);
     users = config.users || [];
     initPIN();
@@ -1064,7 +1065,6 @@ function switchView(name) {
 // ─── Firebase ───
 let unsubscribe=null;
 function subscribeCurrentMonth() {
-  if(isDemoMode) return;
   if(unsubscribe) unsubscribe();
   const ref=fref(`expenses/${currentYear}/${currentMonth}`);
   const handler=snap=>{ listExpenses=snap.val()||{}; if($('view-list').classList.contains('active')) renderList(currentYear,currentMonth,listExpenses); if($('view-home').classList.contains('active')) renderHome(); };
@@ -1072,12 +1072,10 @@ function subscribeCurrentMonth() {
   unsubscribe=()=>ref.off('value',handler);
 }
 function loadMonth(y,m) {
-  if(isDemoMode) return Promise.resolve((y===currentYear&&m===currentMonth)?listExpenses:{});
   return fref(`expenses/${y}/${m}`).once("value").then(s=>s.val()||{});
 }
 
 async function loadRecurring() {
-  if(isDemoMode) return;
   const snap=await fref('recurring').once('value');
   recurringList=snap.val()||{};
 }
@@ -1157,7 +1155,6 @@ function renderHome() {
 
 // ─── Activity (changes by other users) ───
 async function loadLastSeenAndActivity() {
-  if(isDemoMode) { lastSeen=0; activityNotifs=[]; return; }
   const snap = await fref(`config/lastSeen/${activeUserId}`).once('value');
   lastSeen = snap.val() || 0;
   const primCur = config.defaultCurrency || 'AED';
@@ -1290,7 +1287,6 @@ window.skipPendingRecurring = async function(recId, idx) {
 
 // ─── Save Expense ───
 async function saveExpense() {
-  if(demoGuard()) return;
   const amount=parseFloat($('amount-input').value);
   if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
   if(!selectedWho){showToast('⚠️ Select who paid');return;}
@@ -1377,7 +1373,6 @@ async function saveEdit() {
 
 // ─── Delete ───
 window.deleteExpense=async function(year,month,id) {
-  if(demoGuard()) return;
   if(!confirm('Delete this expense?')) return;
   await fref(`expenses/${year}/${month}/${id}`).remove();
 };
@@ -1722,49 +1717,79 @@ window.exportCSV=async function() {
 };
 
 // ─── Demo Mode ───
-function startDemo() {
-  isDemoMode = true; familyId = 'DEMO';
+async function startDemo() {
   const id1='du1', id2='du2', id3='du3';
-  config = {
-    pinHash:'demo', defaultCurrency:'AED', budget:12000, pinMode:'shared',
+  familyId = 'DEMO' + Math.random().toString(36).slice(2,6).toUpperCase();
+  localStorage.setItem('familyId', familyId);
+  isDemoMode = true;
+
+  const demoConfig = {
+    pinHash: await sha256('1234'),
+    defaultCurrency:'AED', budget:12000, pinMode:'shared', isDemo:true,
     users:[{id:id1,name:'Alex',pinHash:null,deleted:false},{id:id2,name:'Maria',pinHash:null,deleted:false},{id:id3,name:'Chris',pinHash:null,deleted:false}],
     person1Id:id1, person2Id:id2,
     categoryBudgets:{food:{amount:3000,currency:'AED'},market:{amount:2000,currency:'AED'},fuel:{amount:1000,currency:'AED'},fun:{amount:1500,currency:'AED'}}
   };
-  users = config.users; activeUserId = id1;
-  const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1;
+
+  // build expenses across 3 months
+  const now=new Date();
+  const byMonth={};
   function dE(dAgo,cat,desc,amt,cur,who,split){
     const d=new Date(now); d.setDate(d.getDate()-dAgo);
+    const my=d.getFullYear(), mm=d.getMonth()+1, key=`${my}/${mm}`;
+    if(!byMonth[key]) byMonth[key]={};
     const base={amount:amt,desc,cat,currency:cur||'AED',date:d.toISOString().slice(0,10),ts:d.getTime(),addedBy:split?id1:who};
-    if(split)base.split=split; else base.who=who; return base;
+    if(split)base.split=split; else base.who=who;
+    byMonth[key]['e'+Object.keys(byMonth[key]).length]=base;
   }
-  listExpenses={
-    e1:dE(1,'food','Carrefour',245,'AED',id2),
-    e2:dE(2,'fuel','ADNOC',180,'AED',id1),
-    e3:dE(3,'fun','Cinema',120,'AED',null,[{userId:id1,amount:60,pct:50},{userId:id2,amount:60,pct:50}]),
-    e4:dE(4,'market','IKEA',890,'AED',id2),
-    e5:dE(5,'health','Pharmacy',95,'AED',id1),
-    e6:dE(6,'food','Noon Food',68,'AED',id3),
-    e7:dE(8,'home','DEWA',320,'AED',null,[{userId:id1,amount:160,pct:50},{userId:id2,amount:160,pct:50}]),
-    e8:dE(9,'clothes','Zara',350,'AED',id2),
-    e9:dE(10,'transport','Careem',42,'AED',id3),
-    e10:dE(11,'food','Waitrose',312,'AED',id1),
-    e11:dE(12,'tech','Apple Store',599,'AED',id1),
-    e12:dE(14,'fun','Dubai Frame',100,'AED',null,[{userId:id1,amount:50,pct:50},{userId:id2,amount:50,pct:50}]),
-    e13:dE(15,'beauty','Sephora',220,'AED',id2),
-    e14:dE(16,'food',"McDonald's",55,'AED',id3),
-    e15:dE(18,'market','Spinneys',175,'AED',id1),
-    e16:dE(20,'home','Etisalat',299,'AED',null,[{userId:id1,amount:149,pct:50},{userId:id2,amount:150,pct:50}]),
-    e17:dE(22,'fuel','Emarat',160,'AED',id2),
-    e18:dE(24,'health','NMC Clinic',350,'AED',id1),
-    e19:dE(26,'food','Talabat',88,'AED',id3),
-    e20:dE(28,'fun','Ski Dubai',280,'AED',null,[{userId:id1,amount:140,pct:50},{userId:id2,amount:140,pct:50}]),
-  };
-  recurringList={
+  // current month
+  dE(1,'food','Carrefour',245,'AED',id2);
+  dE(2,'fuel','ADNOC',180,'AED',id1);
+  dE(3,'fun','Cinema',120,'AED',null,[{userId:id1,amount:60,pct:50},{userId:id2,amount:60,pct:50}]);
+  dE(5,'market','IKEA',890,'AED',id2);
+  dE(6,'health','Pharmacy',95,'AED',id1);
+  dE(7,'food','Noon Food',68,'AED',id3);
+  dE(9,'home','DEWA',320,'AED',null,[{userId:id1,amount:160,pct:50},{userId:id2,amount:160,pct:50}]);
+  dE(10,'clothes','Zara',350,'AED',id2);
+  dE(11,'transport','Careem',42,'AED',id3);
+  dE(12,'food','Waitrose',312,'AED',id1);
+  dE(13,'tech','Apple Store',599,'AED',id1);
+  // last month
+  dE(32,'home','Rent',7500,'AED',null,[{userId:id1,amount:3750,pct:50},{userId:id2,amount:3750,pct:50}]);
+  dE(33,'food','Spinneys',280,'AED',id1);
+  dE(35,'fuel','ADNOC',190,'AED',id2);
+  dE(37,'market','Carrefour',420,'AED',id2);
+  dE(38,'fun','Netflix',49,'AED',id1);
+  dE(40,'beauty','Sephora',220,'AED',id2);
+  dE(42,'health','NMC Clinic',350,'AED',id1);
+  dE(44,'food',"McDonald's",55,'AED',id3);
+  dE(46,'transport','Careem',38,'AED',id3);
+  dE(48,'clothes','H&M',280,'AED',id2);
+  dE(50,'fun','Ski Dubai',280,'AED',null,[{userId:id1,amount:140,pct:50},{userId:id2,amount:140,pct:50}]);
+  // 2 months ago
+  dE(62,'home','Rent',7500,'AED',null,[{userId:id1,amount:3750,pct:50},{userId:id2,amount:3750,pct:50}]);
+  dE(63,'food','Waitrose',310,'AED',id1);
+  dE(65,'fuel','Emarat',160,'AED',id2);
+  dE(67,'market','IKEA',650,'AED',id2);
+  dE(68,'fun','Netflix',49,'AED',id1);
+  dE(70,'fun','Dubai Frame',100,'AED',null,[{userId:id1,amount:50,pct:50},{userId:id2,amount:50,pct:50}]);
+  dE(72,'health','Pharmacy',120,'AED',id1);
+  dE(74,'food','Talabat',88,'AED',id3);
+  dE(76,'market','Spinneys',195,'AED',id1);
+  dE(78,'clothes','Zara',450,'AED',id2);
+
+  // write to Firebase
+  await fref('config').set(demoConfig);
+  for(const [ym,exps] of Object.entries(byMonth)){
+    const [y,m]=ym.split('/');
+    await fref(`expenses/${y}/${m}`).set(exps);
+  }
+  await fref('recurring').set({
     r1:{id:'r1',desc:'Rent',amount:7500,currency:'AED',cat:'home',day:1,active:true,lastAdded:'',split:[{userId:id1,amount:3750,pct:50},{userId:id2,amount:3750,pct:50}]},
     r2:{id:'r2',desc:'Netflix',amount:49,currency:'AED',cat:'fun',day:5,who:id1,active:true,lastAdded:''},
-  };
-  pendingRecurring=Object.values(recurringList);
+  });
+
+  config=demoConfig; users=config.users; activeUserId=id1;
   launchApp();
 }
 
