@@ -1,4 +1,4 @@
-const CACHE = 'expenses-v2';
+const CACHE = 'expenses-v3';
 const PRECACHE = ['/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -16,22 +16,18 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Always network-first for the main HTML — never serve stale app
-  if (url.pathname === '/expenses.html' || url.pathname === '/') {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match('/expenses.html'))
-    );
+  // HTML — never cache, always network
+  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+    e.respondWith(fetch(e.request));
     return;
   }
 
-  // Network-first for Firebase and external APIs
-  if (url.hostname.includes('firebase') || url.hostname.includes('googleapis') ||
-      url.hostname.includes('er-api') || url.hostname.includes('gstatic') ||
-      url.hostname.includes('jsdelivr') || url.hostname.includes('fonts')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  // External (Firebase, CDN, fonts, FX) — network only
+  if (url.hostname !== self.location.hostname) {
+    e.respondWith(fetch(e.request));
     return;
   }
 
-  // Cache-first for icons and manifest
+  // Static assets (icon, manifest) — cache first
   e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
