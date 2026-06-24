@@ -1,0 +1,13 @@
+{
+  "name": "WorkCheck",
+  "short_name": "WorkCheck",
+  "description": "Employee check-in / check-out",
+  "start_url": "./checkin.html",
+  "display": "standalone",
+  "background_color": "#0d0f18",
+  "theme_color": "#0d0f18",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "checkin-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

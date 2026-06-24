@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d0f18">
+  <link rel="manifest" href="checkin-manifest.json">
+  <link rel="apple-touch-icon" href="checkin-icon.svg">
+  <title>WorkCheck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --bg:#0d0f18; --surface:#161925; --surface2:#1e2235;
+      --blue:#3b82f6; --blue-dim:rgba(59,130,246,.12);
+      --green:#22c55e; --green-dim:rgba(34,197,94,.12);
+      --red:#ef4444; --red-dim:rgba(239,68,68,.12);
+      --yellow:#f59e0b;
+      --text:#e8eaf0; --sub:#7880a0; --border:#252840;
+      --r:14px; --r-sm:9px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px}
+    .screen{display:none;min-height:100dvh;flex-direction:column}
+    .screen.active{display:flex}
+
+    /* ── AUTH ── */
+    #screen-login,#screen-register{align-items:center;justify-content:center;padding:24px}
+    .auth-box{width:100%;max-width:400px}
+    .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center}
+    .auth-logo-icon{width:40px;height:40px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center}
+    .auth-title{font-size:20px;font-weight:700;margin-bottom:6px}
+    .auth-sub{font-size:14px;color:var(--sub);margin-bottom:24px}
+    .error-msg{background:var(--red-dim);border:1px solid rgba(239,68,68,.25);border-radius:var(--r-sm);color:var(--red);font-size:13px;padding:10px 14px;margin-bottom:14px;display:none}
+    .error-msg.show{display:block}
+    .sep{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--sub);font-size:12px}
+    .sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--border)}
+    .link-btn{background:none;border:none;color:var(--blue);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:center;width:100%;padding:12px;margin-top:4px}
+
+    /* ── SETUP ── */
+    #screen-setup{align-items:center;justify-content:center;padding:24px;text-align:center}
+    .setup-icon{width:64px;height:64px;background:var(--blue-dim);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+    .setup-steps{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:left;width:100%;max-width:480px;margin-top:20px}
+    .setup-step{display:flex;gap:12px;margin-bottom:14px;font-size:13px;line-height:1.5}
+    .setup-step:last-child{margin-bottom:0}
+    .step-n{width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+
+    /* ── PENDING ── */
+    #screen-pending{align-items:center;justify-content:center;padding:24px;text-align:center}
+    .pending-icon{width:72px;height:72px;background:rgba(245,158,11,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px}
+
+    /* ── APP HEADER ── */
+    .app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .app-header-title{font-size:16px;font-weight:700}
+    .app-header-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    .logout-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--sub);font-family:inherit;font-size:12px;font-weight:600;padding:7px 12px;cursor:pointer}
+
+    /* ── TAB BAR ── */
+    .tab-bar{display:flex;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+    .tab-btn{flex:1;padding:11px 4px 10px;background:none;border:none;color:var(--sub);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.3px;position:relative;transition:color .15s}
+    .tab-btn svg{width:19px;height:19px}
+    .tab-btn.active{color:var(--blue)}
+    .tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--blue);border-radius:2px 2px 0 0}
+    .tab-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px}
+
+    /* ── CONTENT ── */
+    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .view{display:none;padding:14px 14px calc(env(safe-area-inset-bottom) + 20px)}
+    .view.active{display:block}
+
+    /* ── CHECKIN AREA ── */
+    .checkin-area{display:flex;flex-direction:column;align-items:center;padding:28px 16px 20px}
+    .live-clock{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1}
+    .live-date{font-size:13px;color:var(--sub);margin-top:4px;margin-bottom:32px}
+    .check-btn{width:156px;height:156px;border-radius:50%;border:none;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;transition:transform .15s}
+    .check-btn:active{transform:scale(.95)}
+    .check-btn svg{width:34px;height:34px}
+    .check-btn.cin{background:var(--green);color:#fff;box-shadow:0 0 40px rgba(34,197,94,.3)}
+    .check-btn.cout{background:var(--red);color:#fff;box-shadow:0 0 40px rgba(239,68,68,.3)}
+    .check-btn.idle{background:var(--surface2);color:var(--sub);box-shadow:none;cursor:default}
+    .check-btn.cin::before,.check-btn.cout::before{content:'';position:absolute;inset:0;border-radius:50%;animation:pulse 2s ease-out infinite}
+    .check-btn.cin::before{background:var(--green)}
+    .check-btn.cout::before{background:var(--red)}
+    @keyframes pulse{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.35);opacity:0}}
+
+    .status-bar{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:22px}
+    .status-badge{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px}
+    .status-badge.in{background:var(--green-dim);color:var(--green)}
+    .status-badge.out{background:var(--surface2);color:var(--sub)}
+    .sdot{width:7px;height:7px;border-radius:50%}
+    .status-badge.in .sdot{background:var(--green)}
+    .status-badge.out .sdot{background:var(--sub)}
+    .elapsed{font-size:11px;color:var(--sub)}
+    .gps-pill{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 12px;border-radius:20px;background:var(--surface2)}
+    .gps-pill.ok{color:var(--green)}.gps-pill.err{color:var(--red)}.gps-pill.warn{color:var(--yellow)}.gps-pill.loading{color:var(--sub)}
+
+    /* ── CARD ── */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:12px}
+    .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--sub);margin-bottom:12px}
+    .section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+    /* ── LOG ROW ── */
+    .log-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .log-row:last-child{border-bottom:none}
+    .log-t{font-weight:600}.log-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    .log-dur{font-weight:700;color:var(--blue)}
+
+    /* ── EMPLOYEE CARDS ── */
+    .emp-card{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .emp-card:last-child{border-bottom:none}
+    .emp-av{width:40px;height:40px;border-radius:50%;background:var(--blue-dim);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--blue);flex-shrink:0}
+    .emp-info{flex:1;min-width:0}
+    .emp-name{font-size:14px;font-weight:600}
+    .emp-ph{font-size:11px;color:var(--sub);margin-top:1px}
+    .emp-since{font-size:11px;color:var(--sub);margin-top:2px}
+    .emp-st{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:12px;flex-shrink:0}
+    .emp-st.in{background:var(--green-dim);color:var(--green)}
+    .emp-st.out{background:var(--surface2);color:var(--sub)}
+    .estdot{width:6px;height:6px;border-radius:50%}
+    .emp-st.in .estdot{background:var(--green)}.emp-st.out .estdot{background:var(--sub)}
+
+    /* ── PENDING CARD ── */
+    .pend-card{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:10px}
+    .pend-card:last-child{border-bottom:none}
+    .pend-info{flex:1}
+    .pend-name{font-size:14px;font-weight:600}
+    .pend-ph{font-size:12px;color:var(--sub);margin-top:2px}
+    .approve-btn{background:var(--green);color:#fff;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer}
+    .reject-btn{background:var(--surface2);color:var(--red);border:1px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;margin-right:6px}
+
+    /* ── SETTINGS ROW ── */
+    .set-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+    .set-row:last-child{border-bottom:none}
+    .set-lbl{font-size:14px;font-weight:500}
+    .set-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    .set-val{font-size:12px;color:var(--blue);font-weight:600;font-family:monospace;text-align:right;max-width:160px;word-break:break-all}
+
+    /* ── FORMS ── */
+    .form-group{margin-bottom:14px}
+    .form-label{display:block;font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+    .form-input,.form-select,.date-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:15px;padding:11px 13px}
+    .form-input:focus,.form-select:focus,.date-input:focus{outline:none;border-color:var(--blue)}
+    .form-input.err{border-color:var(--red)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    /* ── BUTTONS ── */
+    .btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--r-sm);border:none;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;width:100%}
+    .btn:active{opacity:.7}.btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-primary{background:var(--blue);color:#fff;margin-top:4px}
+    .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+    .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty{text-align:center;padding:28px 16px;color:var(--sub);font-size:13px;line-height:1.6}
+    .date-bar{display:flex;gap:8px;margin-bottom:14px}
+    .date-input{flex:1}
+
+    /* ── MODAL ── */
+    #scrim{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10;display:none;backdrop-filter:blur(3px)}
+    #modal{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:640px;background:var(--surface);border-radius:20px 20px 0 0;z-index:11;padding:18px 18px calc(env(safe-area-inset-bottom) + 20px);display:none;max-height:90dvh;overflow-y:auto}
+    #scrim.open,#modal.open{display:block}
+    .modal-handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+    .modal-title{font-size:16px;font-weight:700;margin-bottom:18px}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    /* ── OFFLINE BAR ── */
+    #offline-bar{position:fixed;top:0;left:0;right:0;z-index:100;padding:calc(env(safe-area-inset-top) + 8px) 16px 8px;background:rgba(245,158,11,.15);border-bottom:1px solid rgba(245,158,11,.3);color:var(--yellow);font-size:12px;font-weight:600;display:none;align-items:center;justify-content:center;gap:6px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+    #offline-bar.show{display:flex}
+    body.offline-on .app-header{margin-top:36px}
+    body.offline-on #screen-login,body.offline-on #screen-register{padding-top:60px}
+  </style>
+</head>
+<body>
+
+<div id="offline-bar">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+  Offline — οι αλλαγές θα συγχρονιστούν όταν επανέλθει η σύνδεση
+</div>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen">
+  <div style="width:100%;max-width:500px;padding:28px;margin:auto;text-align:center">
+    <div class="setup-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:10px">Firebase Setup Required</div>
+    <div style="font-size:14px;color:var(--sub);line-height:1.6">Paste your Firebase config in the FIREBASE_CONFIG section of this file.</div>
+    <div class="setup-steps">
+      <div class="setup-step"><div class="step-n">1</div><div>Go to <strong>console.firebase.google.com</strong> → New project</div></div>
+      <div class="setup-step"><div class="step-n">2</div><div>Authentication → Sign-in method → Enable <strong>Email/Password</strong></div></div>
+      <div class="setup-step"><div class="step-n">3</div><div>Firestore Database → Create → <strong>Test mode</strong></div></div>
+      <div class="setup-step"><div class="step-n">4</div><div>Project Settings → Your apps → Add Web App → copy config into <code style="color:var(--blue)">FIREBASE_CONFIG</code> below</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen">
+  <div style="display:flex;flex:1;align-items:center;justify-content:center;padding:24px">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div>
+        <span style="font-size:22px;font-weight:700">WorkCheck</span>
+      </div>
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in with your phone number</div>
+      <div id="login-err" class="error-msg"></div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" id="l-phone" placeholder="6912345678" autocomplete="username"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="sep">or</div>
+      <button class="link-btn" onclick="showScreen('register')">Create an account</button>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="screen-register" class="screen">
+  <div style="display:flex;flex:1;align-items:center;justify-content:center;padding:24px">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div>
+        <span style="font-size:22px;font-weight:700">WorkCheck</span>
+      </div>
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Your manager will approve your access</div>
+      <div id="reg-err" class="error-msg"></div>
+      <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="r-name" placeholder="John Smith" autocomplete="name"></div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" id="r-phone" placeholder="6912345678"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="r-pass" placeholder="At least 6 characters" autocomplete="new-password"></div>
+      <div class="form-group"><label class="form-label">Confirm Password</label><input type="password" class="form-input" id="r-conf" placeholder="Repeat password" autocomplete="new-password"></div>
+      <button class="btn btn-primary" id="reg-btn" onclick="doRegister()">Create Account</button>
+      <div class="sep">or</div>
+      <button class="link-btn" onclick="showScreen('login')">Back to sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING -->
+<div id="screen-pending" class="screen">
+  <div style="display:flex;flex:1;align-items:center;justify-content:center;padding:24px;text-align:center">
+    <div style="max-width:320px">
+      <div class="pending-icon">⏳</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:10px">Waiting for Approval</div>
+      <div style="font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:28px">Your account is created. Your manager needs to approve your access before you can check in.</div>
+      <button class="btn btn-ghost" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE -->
+<div id="screen-employee" class="screen">
+  <div class="app-header">
+    <div><div class="app-header-title" id="e-name">—</div><div class="app-header-sub" id="e-phone">—</div></div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="checkin-area">
+    <div class="live-clock" id="e-clock">—</div>
+    <div class="live-date" id="e-date">—</div>
+    <button class="check-btn idle" id="check-btn" onclick="handleCheck()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+      <span id="check-lbl">Loading</span>
+    </button>
+    <div class="status-bar">
+      <div class="status-badge out" id="e-badge"><div class="sdot"></div><span id="e-badge-lbl">CHECKED OUT</span></div>
+      <div class="elapsed" id="e-elapsed"></div>
+      <div class="gps-pill loading" id="gps-pill">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+        Getting location...
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 14px calc(env(safe-area-inset-bottom) + 20px)">
+    <div class="card">
+      <div class="card-title">Today's Log</div>
+      <div id="e-log"><div class="empty">No activity today</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER -->
+<div id="screen-manager" class="screen">
+  <div class="app-header">
+    <div><div class="app-header-title">WorkCheck</div><div class="app-header-sub" id="m-name">Manager</div></div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-v="live" onclick="mTab('live',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      LIVE
+    </button>
+    <button class="tab-btn" data-v="pending" onclick="mTab('pending',this)" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      APPROVALS
+      <div class="tab-badge" id="pend-badge">0</div>
+    </button>
+    <button class="tab-btn" data-v="history" onclick="mTab('history',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      HISTORY
+    </button>
+    <button class="tab-btn" data-v="settings" onclick="mTab('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      SETTINGS
+    </button>
+  </div>
+  <div class="content">
+    <div id="view-live" class="view active">
+      <div class="card"><div class="card-title">Currently In <span id="live-count" style="color:var(--green)"></span></div><div id="live-in"><div class="empty">Nobody checked in</div></div></div>
+      <div class="card"><div class="card-title">Out / Not Yet In</div><div id="live-out"><div class="empty">Loading...</div></div></div>
+    </div>
+    <div id="view-pending" class="view">
+      <div class="card"><div class="card-title">Pending Approvals</div><div id="pend-list"><div class="empty">No pending requests</div></div></div>
+    </div>
+    <div id="view-history" class="view">
+      <div class="date-bar">
+        <input type="date" class="date-input" id="h-date" onchange="loadHistory()" style="flex:1.2">
+        <select class="form-select" id="h-emp" onchange="loadHistory()" style="flex:1"><option value="">All employees</option></select>
+      </div>
+      <div id="h-list"></div>
+      <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+    <div id="view-settings" class="view">
+      <div class="card">
+        <div class="card-title">Workplace Location</div>
+        <div class="set-row"><div><div class="set-lbl">GPS Coordinates</div><div class="set-sub">Center of allowed zone</div></div><div class="set-val" id="wp-coords">Not set</div></div>
+        <div class="set-row"><div><div class="set-lbl">Allowed Radius</div><div class="set-sub">Employees must be within this</div></div><div class="set-val" id="wp-radius">200 m</div></div>
+        <button class="btn btn-primary" style="margin-top:10px" id="set-loc-btn" onclick="captureWorkplace()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Set My Current Location as Workplace
+        </button>
+        <button class="btn btn-ghost" style="margin-top:8px" onclick="openRadiusModal()">Change Radius</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Team</div>
+        <div class="set-row"><div class="set-lbl">Total Employees</div><div class="set-val" id="emp-count">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="scrim" onclick="closeModal()"></div>
+<div id="modal"><div class="modal-handle"></div><div id="modal-body"></div></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  FIREBASE CONFIG  ← paste your config here
+// ══════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+let auth, db;
+
+if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+  showScreen('setup');
+} else {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+  db.enablePersistence().catch(err => console.warn('Firestore persistence:', err.code));
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) return showScreen('login');
+    const profile = await getProfile(user.uid);
+    if (!profile) { await auth.signOut(); return showScreen('login'); }
+    me = profile; currentUser = user;
+    if (me.role === 'pending')  return showScreen('pending');
+    if (me.role === 'manager')  return initManager();
+    if (me.role === 'employee') return initEmployee();
+  });
+}
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let currentUser = null, me = null, openCheckin = null;
+let workplace = null, currentPos = null;
+let clockTimer = null, elapsedTimer = null, liveUnsubs = [];
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+const toEmail = p => p.replace(/\s+/g,'') + '@workcheckin.app';
+const initials = n => n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const todayStr = () => new Date().toISOString().slice(0,10);
+
+function fmtTime(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function elapsed(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const s = Math.floor((Date.now()-d)/1000);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function duration(s, e) {
+  if (!s||!e) return '—';
+  const a = s.toDate?s.toDate():new Date(s);
+  const b = e.toDate?e.toDate():new Date(e);
+  const diff = Math.floor((b-a)/1000);
+  const h = Math.floor(diff/3600), m = Math.floor((diff%3600)/60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function haversine(la1,lo1,la2,lo2) {
+  const R=6371000, dL=(la2-la1)*Math.PI/180, dG=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function fmtDist(m) { return m<1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(1)}km`; }
+
+function showScreen(n) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+n)?.classList.add('active');
+}
+
+function showErr(id,msg) { const e=document.getElementById(id); e.textContent=msg; e.classList.add('show'); }
+
+function setBtnLoading(id,on) {
+  const b=document.getElementById(id);
+  if(on){b._orig=b.innerHTML;b.innerHTML='<div class="spinner"></div>';b.disabled=true;}
+  else{b.innerHTML=b._orig||b.innerHTML;b.disabled=false;}
+}
+
+function getPos() {
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation) return rej(new Error('no geolocation'));
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{enableHighAccuracy:true,timeout:10000});
+  });
+}
+
+function authErr(code) {
+  const m={'auth/user-not-found':'Phone number not found.','auth/wrong-password':'Incorrect password.',
+    'auth/email-already-in-use':'Phone already registered.','auth/too-many-requests':'Too many attempts. Try again later.'};
+  return m[code]||'Something went wrong. Try again.';
+}
+
+// ══════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════
+async function doLogin() {
+  const phone=document.getElementById('l-phone').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  if(!phone||!pass) return showErr('login-err','Please fill in all fields.');
+  document.getElementById('login-err').classList.remove('show');
+  setBtnLoading('login-btn',true);
+  try { await auth.signInWithEmailAndPassword(toEmail(phone),pass); }
+  catch(e) { setBtnLoading('login-btn',false); showErr('login-err',authErr(e.code)); }
+}
+
+async function doRegister() {
+  const name=document.getElementById('r-name').value.trim();
+  const phone=document.getElementById('r-phone').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const conf=document.getElementById('r-conf').value;
+  if(!name||!phone||!pass||!conf) return showErr('reg-err','Please fill in all fields.');
+  if(pass!==conf) return showErr('reg-err','Passwords do not match.');
+  if(pass.length<6) return showErr('reg-err','Password must be at least 6 characters.');
+  document.getElementById('reg-err').classList.remove('show');
+  setBtnLoading('reg-btn',true);
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(toEmail(phone),pass);
+    const first = (await db.collection('users').limit(1).get()).empty;
+    await db.collection('users').doc(cred.user.uid).set({
+      name, phone, role: first ? 'manager' : 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { setBtnLoading('reg-btn',false); showErr('reg-err',authErr(e.code)); }
+}
+
+async function doLogout() {
+  liveUnsubs.forEach(u=>u()); liveUnsubs=[];
+  clearInterval(clockTimer); clearInterval(elapsedTimer);
+  currentUser=me=openCheckin=workplace=currentPos=null;
+  await auth.signOut();
+}
+
+// ══════════════════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════════════════
+async function getProfile(uid) {
+  try { const d=await db.collection('users').doc(uid).get(); return d.exists?{id:d.id,...d.data()}:null; }
+  catch { return null; }
+}
+
+async function loadWorkplace() {
+  try { const d=await db.collection('settings').doc('workplace').get(); workplace=d.exists?d.data():null; }
+  catch { workplace=null; }
+}
+
+// ══════════════════════════════════════════════
+//  EMPLOYEE
+// ══════════════════════════════════════════════
+async function initEmployee() {
+  showScreen('employee');
+  document.getElementById('e-name').textContent = me.name;
+  document.getElementById('e-phone').textContent = me.phone;
+  await loadWorkplace();
+  startClock();
+  await loadOpenCheckin();
+  updateCheckBtn();
+  loadEmpLog();
+  refreshGPS();
+}
+
+function startClock() {
+  clearInterval(clockTimer);
+  const tick = () => {
+    const n=new Date();
+    document.getElementById('e-clock').textContent = n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('e-date').textContent  = n.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  };
+  tick(); clockTimer=setInterval(tick,1000);
+}
+
+async function refreshGPS() {
+  const pill=document.getElementById('gps-pill');
+  pill.className='gps-pill loading';
+  pill.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Getting location...';
+  try {
+    currentPos = await getPos();
+    updateGPSPill();
+  } catch(e) {
+    currentPos=null;
+    pill.className='gps-pill err';
+    pill.innerHTML='⚠ Location denied — enable GPS in browser settings';
+    updateCheckBtn();
+  }
+}
+
+function updateGPSPill() {
+  const pill=document.getElementById('gps-pill');
+  if(!currentPos){return;}
+  if(!workplace){
+    pill.className='gps-pill warn';
+    pill.innerHTML='⚠ Workplace not configured yet';
+    updateCheckBtn(); return;
+  }
+  const dist=haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng);
+  const ok=dist<=(workplace.radius||200);
+  pill.className='gps-pill '+(ok?'ok':'err');
+  pill.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${fmtDist(dist)} from workplace${ok?' ✓':' — out of range'}`;
+  updateCheckBtn();
+}
+
+async function loadOpenCheckin() {
+  const s=await db.collection('checkins').where('userId','==',currentUser.uid).where('status','==','in').limit(1).get();
+  openCheckin = s.empty ? null : {id:s.docs[0].id,...s.docs[0].data()};
+}
+
+function updateCheckBtn() {
+  const btn=document.getElementById('check-btn');
+  const lbl=document.getElementById('check-lbl');
+  const badge=document.getElementById('e-badge');
+  const bLbl=document.getElementById('e-badge-lbl');
+  const el=document.getElementById('e-elapsed');
+
+  if(openCheckin) {
+    btn.className='check-btn cout';
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>CHECK OUT</span>';
+    badge.className='status-badge in'; bLbl.textContent='CHECKED IN';
+    clearInterval(elapsedTimer);
+    const upd=()=>{ el.textContent='Since '+fmtTime(openCheckin.checkIn)+' · '+elapsed(openCheckin.checkIn); };
+    upd(); elapsedTimer=setInterval(upd,30000);
+  } else {
+    const canIn = !workplace || (currentPos && haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng)<=(workplace.radius||200));
+    btn.className='check-btn '+(canIn?'cin':'idle');
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg><span>CHECK IN</span>';
+    badge.className='status-badge out'; bLbl.textContent='CHECKED OUT';
+    clearInterval(elapsedTimer); el.textContent='';
+  }
+}
+
+async function handleCheck() {
+  if(openCheckin) await doCheckOut(); else await doCheckIn();
+}
+
+async function doCheckIn() {
+  if(!currentPos) return alert('Location required. Please enable GPS and try again.');
+  if(workplace) {
+    const d=haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng);
+    if(d>(workplace.radius||200)) return alert(`You are ${fmtDist(d)} from the workplace.\nCheck-in requires being within ${workplace.radius||200}m.`);
+  }
+  const btn=document.getElementById('check-btn');
+  btn.className='check-btn idle'; btn.innerHTML='<div class="spinner"></div><span>Checking in…</span>';
+  try {
+    const ref=await db.collection('checkins').add({
+      userId:currentUser.uid, userName:me.name, phone:me.phone,
+      checkIn:firebase.firestore.FieldValue.serverTimestamp(),
+      checkInLat:currentPos.lat, checkInLng:currentPos.lng,
+      checkOut:null, checkOutLat:null, checkOutLng:null,
+      date:todayStr(), status:'in'
+    });
+    openCheckin={id:ref.id, checkIn:new Date(), userId:currentUser.uid, status:'in'};
+    updateCheckBtn(); loadEmpLog();
+  } catch { alert('Check-in failed. Try again.'); updateCheckBtn(); }
+}
+
+async function doCheckOut() {
+  if(!currentPos) { if(!confirm('Location unavailable. Check out anyway?')) return; }
+  const btn=document.getElementById('check-btn');
+  btn.className='check-btn idle'; btn.innerHTML='<div class="spinner"></div><span>Checking out…</span>';
+  try {
+    await db.collection('checkins').doc(openCheckin.id).update({
+      checkOut:firebase.firestore.FieldValue.serverTimestamp(),
+      checkOutLat:currentPos?.lat||null, checkOutLng:currentPos?.lng||null, status:'out'
+    });
+    openCheckin=null; updateCheckBtn(); loadEmpLog(); refreshGPS();
+  } catch { alert('Check-out failed. Try again.'); updateCheckBtn(); }
+}
+
+async function loadEmpLog() {
+  const s=await db.collection('checkins').where('userId','==',currentUser.uid).where('date','==',todayStr()).orderBy('checkIn','desc').get();
+  const el=document.getElementById('e-log');
+  if(s.empty){el.innerHTML='<div class="empty">No activity today</div>';return;}
+  el.innerHTML=s.docs.map(d=>{
+    const c=d.data(); const open=c.status==='in';
+    return `<div class="log-row">
+      <div><div class="log-t">${fmtTime(c.checkIn)} → ${open?'now':fmtTime(c.checkOut)}</div>
+      <div class="log-sub">${open?'Active':'Duration: '+duration(c.checkIn,c.checkOut)}</div></div>
+      <div class="log-dur" style="color:${open?'var(--green)':'var(--blue)'}">${open?elapsed(c.checkIn):duration(c.checkIn,c.checkOut)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  MANAGER
+// ══════════════════════════════════════════════
+async function initManager() {
+  showScreen('manager');
+  document.getElementById('m-name').textContent=me.name;
+  document.getElementById('h-date').value=todayStr();
+  await loadWorkplace();
+  initLive(); loadPending(); loadHistoryEmps(); loadSettings();
+}
+
+function mTab(v,btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));
+  document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+v));
+  if(v==='history') loadHistory();
+}
+
+// LIVE
+function initLive() {
+  liveUnsubs.forEach(u=>u()); liveUnsubs=[];
+  let emps=[], opens=[];
+
+  function render() {
+    const inIds=new Set(opens.map(c=>c.userId));
+    const inEl=document.getElementById('live-in');
+    const outEl=document.getElementById('live-out');
+    document.getElementById('live-count').textContent=inIds.size?`(${inIds.size})`:'';
+
+    const inEmps=emps.filter(e=>inIds.has(e.id));
+    const outEmps=emps.filter(e=>!inIds.has(e.id));
+
+    inEl.innerHTML=inEmps.length?inEmps.map(e=>{
+      const ci=opens.find(c=>c.userId===e.id);
+      return `<div class="emp-card">
+        <div class="emp-av">${initials(e.name)}</div>
+        <div class="emp-info"><div class="emp-name">${e.name}</div><div class="emp-ph">${e.phone}</div>
+        ${ci?`<div class="emp-since">Since ${fmtTime(ci.checkIn)} · ${elapsed(ci.checkIn)}</div>`:''}</div>
+        <div class="emp-st in"><div class="estdot"></div>IN</div>
+      </div>`;
+    }).join(''):'<div class="empty">Nobody checked in</div>';
+
+    outEl.innerHTML=outEmps.length?outEmps.map(e=>`
+      <div class="emp-card">
+        <div class="emp-av">${initials(e.name)}</div>
+        <div class="emp-info"><div class="emp-name">${e.name}</div><div class="emp-ph">${e.phone}</div></div>
+        <div class="emp-st out"><div class="estdot"></div>OUT</div>
+      </div>`).join(''):'<div class="empty">Everyone is checked in</div>';
+  }
+
+  liveUnsubs.push(
+    db.collection('users').where('role','==','employee').onSnapshot(s=>{emps=s.docs.map(d=>({id:d.id,...d.data()}));render();}),
+    db.collection('checkins').where('status','==','in').onSnapshot(s=>{opens=s.docs.map(d=>({id:d.id,...d.data()}));render();})
+  );
+  setInterval(()=>{ if(document.getElementById('view-live').classList.contains('active')) render(); }, 60000);
+}
+
+// PENDING
+async function loadPending() {
+  const s=await db.collection('users').where('role','==','pending').get();
+  const el=document.getElementById('pend-list');
+  const badge=document.getElementById('pend-badge');
+  if(s.empty){el.innerHTML='<div class="empty">No pending requests</div>';badge.style.display='none';return;}
+  badge.style.display='flex'; badge.textContent=s.size;
+  el.innerHTML=s.docs.map(d=>{
+    const u=d.data();
+    return `<div class="pend-card">
+      <div class="pend-info"><div class="pend-name">${u.name}</div><div class="pend-ph">${u.phone}</div></div>
+      <div><button class="reject-btn" onclick="rejectUser('${d.id}')">Reject</button><button class="approve-btn" onclick="approveUser('${d.id}')">Approve</button></div>
+    </div>`;
+  }).join('');
+}
+
+async function approveUser(uid) {
+  await db.collection('users').doc(uid).update({role:'employee'});
+  loadPending(); loadHistoryEmps(); loadSettings();
+}
+
+async function rejectUser(uid) {
+  if(!confirm('Remove this user?')) return;
+  await db.collection('users').doc(uid).delete();
+  loadPending();
+}
+
+// HISTORY
+async function loadHistoryEmps() {
+  const s=await db.collection('users').where('role','in',['employee','manager']).get();
+  const sel=document.getElementById('h-emp');
+  sel.innerHTML='<option value="">All employees</option>'+s.docs.map(d=>`<option value="${d.id}">${d.data().name}</option>`).join('');
+}
+
+async function loadHistory() {
+  const date=document.getElementById('h-date').value||todayStr();
+  const empId=document.getElementById('h-emp').value;
+  const el=document.getElementById('h-list');
+  el.innerHTML='<div class="card"><div class="empty">Loading…</div></div>';
+  let q=db.collection('checkins').where('date','==',date);
+  if(empId) q=q.where('userId','==',empId);
+  const s=await q.orderBy('checkIn','asc').get();
+  if(s.empty){el.innerHTML='<div class="card"><div class="empty">No check-ins on this date</div></div>';return;}
+  const byEmp={};
+  s.docs.forEach(d=>{const c=d.data(); if(!byEmp[c.userId]) byEmp[c.userId]={name:c.userName,phone:c.phone,rows:[]}; byEmp[c.userId].rows.push(c);});
+  el.innerHTML=Object.values(byEmp).map(emp=>`
+    <div class="card">
+      <div class="card-title">${emp.name} · ${emp.phone}</div>
+      ${emp.rows.map(c=>`<div class="log-row">
+        <div><div class="log-t">${fmtTime(c.checkIn)} → ${c.checkOut?fmtTime(c.checkOut):'Now'}</div>
+        <div class="log-sub">${c.checkInLat?`${c.checkInLat.toFixed(5)}, ${c.checkInLng.toFixed(5)}`:'No GPS'}</div></div>
+        <div class="log-dur">${c.checkOut?duration(c.checkIn,c.checkOut):'<span style="color:var(--green)">'+elapsed(c.checkIn)+' active</span>'}</div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+async function exportCSV() {
+  const date=document.getElementById('h-date').value||todayStr();
+  const empId=document.getElementById('h-emp').value;
+  let q=db.collection('checkins').where('date','==',date);
+  if(empId) q=q.where('userId','==',empId);
+  const s=await q.orderBy('checkIn','asc').get();
+  let csv='Date,Name,Phone,Check In,Check Out,Duration,Lat In,Lng In,Lat Out,Lng Out\n';
+  s.docs.forEach(d=>{const c=d.data();csv+=[c.date,`"${c.userName}"`,c.phone,fmtTime(c.checkIn),c.checkOut?fmtTime(c.checkOut):'',c.checkOut?duration(c.checkIn,c.checkOut):'',c.checkInLat||'',c.checkInLng||'',c.checkOutLat||'',c.checkOutLng||''].join(',')+'\n';});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`checkins_${date}.csv`; a.click();
+}
+
+// SETTINGS
+async function loadSettings() {
+  document.getElementById('wp-coords').textContent=workplace?`${workplace.lat.toFixed(5)}, ${workplace.lng.toFixed(5)}`:'Not set';
+  document.getElementById('wp-radius').textContent=workplace?`${workplace.radius||200} m`:'200 m';
+  const s=await db.collection('users').where('role','==','employee').get();
+  document.getElementById('emp-count').textContent=s.size;
+}
+
+async function captureWorkplace() {
+  const btn=document.getElementById('set-loc-btn');
+  btn.innerHTML='<div class="spinner"></div> Getting GPS…'; btn.disabled=true;
+  try {
+    const pos=await getPos();
+    workplace={lat:pos.lat, lng:pos.lng, radius:workplace?.radius||200};
+    await db.collection('settings').doc('workplace').set(workplace);
+    loadSettings();
+    btn.innerHTML='✓ Location Saved'; btn.disabled=false;
+    setTimeout(()=>{ btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Set My Current Location as Workplace'; }, 2500);
+  } catch {
+    alert('Could not get location. Enable GPS.'); btn.disabled=false;
+    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Set My Current Location as Workplace';
+  }
+}
+
+function openRadiusModal() {
+  openModal(`<div class="modal-title">Allowed Radius</div>
+    <div class="form-group"><label class="form-label">Radius (meters)</label>
+    <input type="number" class="form-input" id="r-input" value="${workplace?.radius||200}" min="50" max="5000" step="50"></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:16px">Employees must be within this distance to check in.</div>
+    <button class="btn btn-primary" onclick="saveRadius()">Save</button>`);
+}
+
+async function saveRadius() {
+  const r=parseInt(document.getElementById('r-input').value)||200;
+  if(!workplace){closeModal();return alert('Set workplace location first.');}
+  workplace.radius=r;
+  await db.collection('settings').doc('workplace').update({radius:r});
+  closeModal(); loadSettings();
+}
+
+// ══════════════════════════════════════════════
+//  OFFLINE / PWA
+// ══════════════════════════════════════════════
+function updateOfflineBar() {
+  const on = !navigator.onLine;
+  document.getElementById('offline-bar').classList.toggle('show', on);
+  document.body.classList.toggle('offline-on', on);
+}
+window.addEventListener('online',  updateOfflineBar);
+window.addEventListener('offline', updateOfflineBar);
+updateOfflineBar();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./checkin-sw.js').catch(console.warn);
+}
+
+// ══════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════
+function openModal(html) {
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('scrim').classList.remove('open');
+}
+</script>
+</body>
+</html>
