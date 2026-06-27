@@ -276,7 +276,11 @@
       <div class="card-title">Today's Log</div>
       <div id="e-log"><div class="empty">No activity today</div></div>
     </div>
-    <div style="text-align:center;font-size:11px;color:var(--sub);padding-top:4px">WorkCheck · v · 13:06</div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">My Hours</div>
+      <div id="my-hours"><div class="empty" style="padding:8px 0">Loading…</div></div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--sub);padding-top:4px">WorkCheck · v · 15:07</div>
   </div>
 </div>
 
@@ -314,9 +318,14 @@
       <div class="card"><div class="card-title">Pending Approvals</div><div id="pend-list"><div class="empty">No pending requests</div></div></div>
     </div>
     <div id="view-history" class="view">
-      <div class="date-bar">
-        <input type="date" class="date-input" id="h-date" onchange="loadHistory()" style="flex:1.2">
-        <select class="form-select" id="h-emp" onchange="loadHistory()" style="flex:1"><option value="">All employees</option></select>
+      <div class="date-bar" style="flex-wrap:wrap;gap:8px">
+        <select class="form-select" id="h-mode" onchange="onHistoryModeChange()" style="flex:none">
+          <option value="day">Day</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+        </select>
+        <input type="date" class="date-input" id="h-date" onchange="loadHistory()" style="flex:1;min-width:120px">
+        <select class="form-select" id="h-emp" onchange="loadHistory()" style="flex:1;min-width:100px"><option value="">All employees</option></select>
       </div>
       <div id="h-list"></div>
       <button class="btn btn-ghost" onclick="exportCSV()" style="margin-top:8px">
@@ -341,8 +350,19 @@
         <div class="set-row"><div class="set-lbl">Total Employees</div><div class="set-val" id="emp-count">—</div></div>
       </div>
       <div class="card">
+        <div class="card-title">Attendance</div>
+        <div class="set-row">
+          <div><div class="set-lbl">Late if not checked in by</div><div class="set-sub">Highlights employees on Live view</div></div>
+          <input type="time" id="late-time-input" onchange="saveLateTime()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;padding:6px 10px;outline:none">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Team Management</div>
+        <div id="team-manage-list"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
         <div class="card-title">App</div>
-        <div class="set-row"><div><div class="set-lbl">WorkCheck</div><div class="set-sub">Deployed</div></div><div class="set-val">v · 13:06</div></div>
+        <div class="set-row"><div><div class="set-lbl">WorkCheck</div><div class="set-sub">Deployed</div></div><div class="set-val">v · 15:07</div></div>
       </div>
     </div>
   </div>
@@ -355,7 +375,7 @@
 // ══════════════════════════════════════════════
 //  VERSION
 // ══════════════════════════════════════════════
-const _THIS_VERSION = '13:06';
+const _THIS_VERSION = '15:07';
 (async () => {
   try {
     const r = await fetch('checkin-version.json?_=' + Date.now());
@@ -404,7 +424,7 @@ if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
 //  STATE
 // ══════════════════════════════════════════════
 let currentUser = null, me = null, openCheckin = null;
-let workplace = null, currentPos = null;
+let workplace = null, currentPos = null, lateTime = null;
 let clockTimer = null, elapsedTimer = null, liveUnsubs = [];
 
 // ══════════════════════════════════════════════
@@ -550,6 +570,7 @@ async function initEmployee() {
   await loadOpenCheckin();
   updateCheckBtn();
   loadEmpLog();
+  loadMyHours();
 }
 
 function startClock() {
@@ -676,6 +697,27 @@ async function doCheckOut() {
   } catch { alert('Check-out failed. Try again.'); updateCheckBtn(); }
 }
 
+async function loadMyHours() {
+  const el=document.getElementById('my-hours'); if(!el) return;
+  const now=new Date();
+  const todStr=todayStr();
+  const day=now.getDay()||7;
+  const wkStart=new Date(now); wkStart.setDate(now.getDate()-day+1);
+  const wkStartStr=wkStart.toISOString().slice(0,10);
+  const moStartStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const sum=snap=>{let ms=0;snap.docs.forEach(d=>{const c=d.data();if(c.checkIn&&c.checkOut){const a=c.checkIn.toDate?c.checkIn.toDate():new Date(c.checkIn),b=c.checkOut.toDate?c.checkOut.toDate():new Date(c.checkOut);ms+=b-a;}});return ms;};
+  const fmt=ms=>{const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?`${h}h ${m}m`:`${m}m`;};
+  try {
+    const [wk,mo]=await Promise.all([
+      db.collection('checkins').where('userId','==',currentUser.uid).where('date','>=',wkStartStr).where('date','<=',todStr).where('status','==','out').get(),
+      db.collection('checkins').where('userId','==',currentUser.uid).where('date','>=',moStartStr).where('date','<=',todStr).where('status','==','out').get(),
+    ]);
+    el.innerHTML=`
+      <div class="log-row"><div class="log-t">This week</div><div class="log-dur">${fmt(sum(wk))}</div></div>
+      <div class="log-row"><div class="log-t">This month</div><div class="log-dur">${fmt(sum(mo))}</div></div>`;
+  } catch { el.innerHTML='<div class="empty" style="padding:8px 0">Could not load</div>'; }
+}
+
 async function loadEmpLog() {
   const s=await db.collection('checkins').where('userId','==',currentUser.uid).where('date','==',todayStr()).orderBy('checkIn','desc').get();
   const el=document.getElementById('e-log');
@@ -698,13 +740,25 @@ async function initManager() {
   document.getElementById('m-name').textContent=me.name;
   document.getElementById('h-date').value=todayStr();
   await loadWorkplace();
-  initLive(); loadPending(); loadHistoryEmps(); loadSettings();
+  await loadLateConfig();
+  initLive(); loadPending(); loadHistoryEmps(); loadSettings(); loadTeamManage();
 }
 
 function mTab(v,btn) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));
   document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+v));
   if(v==='history') loadHistory();
+  if(v==='settings') { loadSettings(); loadTeamManage(); }
+}
+
+async function loadLateConfig() {
+  try { const d=await db.collection('settings').doc('config').get(); lateTime=d.exists?d.data().lateTime||null:null; } catch{}
+}
+
+async function saveLateTime() {
+  const val=document.getElementById('late-time-input')?.value||null;
+  lateTime=val;
+  await db.collection('settings').doc('config').set({lateTime:val},{merge:true});
 }
 
 // LIVE
@@ -727,14 +781,20 @@ function initLive() {
         <div class="emp-av">${initials(e.name)}</div>
         <div class="emp-info"><div class="emp-name">${e.name}</div><div class="emp-ph">${e.phone}</div>
         ${ci?`<div class="emp-since">Since ${fmtTime(ci.checkIn)} · ${elapsed(ci.checkIn)}</div>`:''}</div>
-        <div class="emp-st in"><div class="estdot"></div>IN</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${ci?`<button class="reject-btn" onclick="managerCheckOut('${ci.id}','${e.name}')" style="font-size:11px;padding:5px 10px">Check Out</button>`:''}
+          <div class="emp-st in"><div class="estdot"></div>IN</div>
+        </div>
       </div>`;
     }).join(''):'<div class="empty">Nobody checked in</div>';
 
+    const nowTime=new Date().toTimeString().slice(0,5);
+    const isLate=lateTime&&nowTime>lateTime;
     outEl.innerHTML=outEmps.length?outEmps.map(e=>`
-      <div class="emp-card">
-        <div class="emp-av">${initials(e.name)}</div>
-        <div class="emp-info"><div class="emp-name">${e.name}</div><div class="emp-ph">${e.phone}</div></div>
+      <div class="emp-card" style="${isLate?'border-left:3px solid var(--yellow);padding-left:9px':''}">
+        <div class="emp-av" style="${isLate?'background:rgba(245,158,11,.15);color:var(--yellow)':''}">${initials(e.name)}</div>
+        <div class="emp-info"><div class="emp-name">${e.name}</div><div class="emp-ph">${e.phone}</div>
+        ${isLate?`<div style="font-size:11px;color:var(--yellow)">⚠ Late since ${lateTime}</div>`:''}</div>
         <div class="emp-st out"><div class="estdot"></div>OUT</div>
       </div>`).join(''):'<div class="empty">Everyone is checked in</div>';
   }
@@ -744,6 +804,12 @@ function initLive() {
     db.collection('checkins').where('status','==','in').onSnapshot(s=>{opens=s.docs.map(d=>({id:d.id,...d.data()}));render();})
   );
   setInterval(()=>{ if(document.getElementById('view-live').classList.contains('active')) render(); }, 60000);
+}
+
+async function managerCheckOut(checkInId, empName) {
+  if(!confirm(`Check out ${empName}?`)) return;
+  const now=firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection('checkins').doc(checkInId).update({checkOut:now,status:'out'});
 }
 
 // PENDING
@@ -780,22 +846,58 @@ async function loadHistoryEmps() {
   sel.innerHTML='<option value="">All employees</option>'+s.docs.map(d=>`<option value="${d.id}">${d.data().name}</option>`).join('');
 }
 
+function onHistoryModeChange() {
+  const mode=document.getElementById('h-mode').value;
+  const dateInput=document.getElementById('h-date');
+  if(mode==='week'){
+    const now=new Date(); const day=now.getDay()||7;
+    now.setDate(now.getDate()-day+1);
+    dateInput.value=now.toISOString().slice(0,10);
+  } else if(mode==='month'){
+    const now=new Date();
+    dateInput.value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  }
+  loadHistory();
+}
+
+function dateRange(fromStr) {
+  const mode=document.getElementById('h-mode')?.value||'day';
+  if(mode==='day') return {start:fromStr,end:fromStr};
+  if(mode==='week'){
+    const d=new Date(fromStr+'T00:00:00'); const day=d.getDay()||7;
+    d.setDate(d.getDate()-day+1);
+    const start=d.toISOString().slice(0,10);
+    d.setDate(d.getDate()+6);
+    return {start,end:d.toISOString().slice(0,10)};
+  }
+  if(mode==='month'){
+    const [y,m]=fromStr.split('-');
+    const last=new Date(+y,+m,0).getDate();
+    return {start:`${y}-${m}-01`,end:`${y}-${m}-${String(last).padStart(2,'0')}`};
+  }
+  return {start:fromStr,end:fromStr};
+}
+
 async function loadHistory() {
-  const date=document.getElementById('h-date').value||todayStr();
+  const rawDate=document.getElementById('h-date').value||todayStr();
+  const {start,end}=dateRange(rawDate);
   const empId=document.getElementById('h-emp').value;
+  const mode=document.getElementById('h-mode')?.value||'day';
   const el=document.getElementById('h-list');
   el.innerHTML='<div class="card"><div class="empty">Loading…</div></div>';
-  let q=db.collection('checkins').where('date','==',date);
+  let q=db.collection('checkins').where('date','>=',start).where('date','<=',end);
   if(empId) q=q.where('userId','==',empId);
-  const s=await q.orderBy('checkIn','asc').get();
-  if(s.empty){el.innerHTML='<div class="card"><div class="empty">No check-ins on this date</div></div>';return;}
+  const s=await q.orderBy('date','asc').get();
+  if(s.empty){el.innerHTML=`<div class="card"><div class="empty">No check-ins${mode!=='day'?` (${start} → ${end})`:` on ${start}`}</div></div>`;return;}
   const byEmp={};
-  s.docs.forEach(d=>{const c=d.data(); if(!byEmp[c.userId]) byEmp[c.userId]={name:c.userName,phone:c.phone,rows:[]}; byEmp[c.userId].rows.push(c);});
+  s.docs.forEach(d=>{const c=d.data(); if(!byEmp[c.userId]) byEmp[c.userId]={name:c.userName,phone:c.phone,rows:[],totalMs:0}; byEmp[c.userId].rows.push(c);
+    if(c.checkIn&&c.checkOut){const a=c.checkIn.toDate?c.checkIn.toDate():new Date(c.checkIn),b=c.checkOut.toDate?c.checkOut.toDate():new Date(c.checkOut);byEmp[c.userId].totalMs+=b-a;}});
+  const fmtTotal=ms=>{const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000);return h>0?`${h}h ${m}m`:`${m}m`;};
   el.innerHTML=Object.values(byEmp).map(emp=>`
     <div class="card">
-      <div class="card-title">${emp.name} · ${emp.phone}</div>
+      <div class="card-title">${emp.name} · ${emp.phone}${mode!=='day'&&emp.totalMs?` <span style="color:var(--blue);font-weight:700">Total: ${fmtTotal(emp.totalMs)}</span>`:''}</div>
       ${emp.rows.map(c=>`<div class="log-row">
-        <div><div class="log-t">${fmtTime(c.checkIn)} → ${c.checkOut?fmtTime(c.checkOut):'Now'}</div>
+        <div><div class="log-t">${c.date} &nbsp;${fmtTime(c.checkIn)} → ${c.checkOut?fmtTime(c.checkOut):'Now'}</div>
         <div class="log-sub">${c.checkInLat?`${c.checkInLat.toFixed(5)}, ${c.checkInLng.toFixed(5)}`:'No GPS'}</div></div>
         <div class="log-dur">${c.checkOut?duration(c.checkIn,c.checkOut):'<span style="color:var(--green)">'+elapsed(c.checkIn)+' active</span>'}</div>
       </div>`).join('')}
@@ -820,6 +922,38 @@ async function loadSettings() {
   document.getElementById('wp-radius').textContent=workplace?`${workplace.radius||200} m`:'200 m';
   const s=await db.collection('users').where('role','==','employee').get();
   document.getElementById('emp-count').textContent=s.size;
+  if(lateTime) document.getElementById('late-time-input').value=lateTime;
+}
+
+async function loadTeamManage() {
+  const el=document.getElementById('team-manage-list'); if(!el) return;
+  el.innerHTML='<div class="empty">Loading…</div>';
+  try {
+    const s=await db.collection('users').orderBy('name').get();
+    const rows=s.docs.map(d=>{const u=d.data();const uid=d.id;
+      const roleLabel=u.role==='manager'?'Manager':u.role==='employee'?'Employee':'Pending';
+      const canPromote=u.role==='employee';
+      const canDemote=u.role==='manager';
+      return `<div class="log-row" style="align-items:center">
+        <div><div class="log-t">${u.name||'—'}</div><div class="log-sub">${u.phone||''} · ${roleLabel}</div></div>
+        <div style="display:flex;gap:6px">
+          ${canPromote?`<button class="btn btn-primary" onclick="promoteUser('${uid}')" style="font-size:11px;padding:5px 10px">↑ Manager</button>`:''}
+          ${canDemote?`<button class="reject-btn" onclick="demoteUser('${uid}')" style="font-size:11px;padding:5px 10px">↓ Employee</button>`:''}
+        </div>
+      </div>`;
+    });
+    el.innerHTML=rows.join('')||'<div class="empty">No users</div>';
+  } catch(e){ el.innerHTML='<div class="empty">Could not load</div>'; }
+}
+
+async function promoteUser(uid) {
+  await db.collection('users').doc(uid).update({role:'manager'});
+  loadTeamManage();
+}
+
+async function demoteUser(uid) {
+  await db.collection('users').doc(uid).update({role:'employee'});
+  loadTeamManage();
 }
 
 async function captureWorkplace() {
