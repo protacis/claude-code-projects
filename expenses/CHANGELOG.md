@@ -5,6 +5,17 @@ Format: `[vX.Y.Z] YYYY-MM-DD — Description`
 
 ---
 
+## [v2.2.0] 2026-06-27 — Custom categories
+
+### New features
+- **Custom categories** — create new categories with emoji icon, name, and color
+- **Rename categories** — edit label and icon of any existing category
+- All categories stored in Firebase (`config/categories`); synced across users
+- Built-in categories (Food, Shopping, etc.) can be renamed but not deleted
+- Custom categories can be fully deleted (existing expenses fall back to Other)
+
+---
+
 ## [v2.0.0] 2026-06-21 — Full multi-user rewrite
 
 ### New features

@@ -478,7 +478,7 @@
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
         <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.1.0</strong> · deployed <strong>2026-06-21 22:09</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.2.0</strong> · deployed <strong>2026-06-27 11:48</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
     <!-- About -->
@@ -1270,7 +1270,7 @@ async function renderHome() {
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.1.0 · 2026-06-21 22:09</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.2.0 · 2026-06-27 11:48</p>
   `;
 
   updateNotifBadge();
@@ -2023,7 +2023,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '22:09';
+const _THIS_VERSION = '11:48';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
