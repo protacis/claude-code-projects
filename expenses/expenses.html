@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -247,46 +247,46 @@
 
 <!-- Welcome -->
 <div id="screen-welcome" class="screen hidden">
-  <div class="screen-logo">💰</div>
+  <div class="screen-logo">ðŸ’°</div>
   <div class="screen-title">Expenses</div>
   <div class="screen-sub">Track your household spending<br>together</div>
-  <button class="btn-primary" id="btn-create-family" style="margin-bottom:12px">🏠 Create new family</button>
-  <button class="btn-primary" id="btn-join-family" style="background:var(--surface2);color:var(--text)">🔑 Join with code</button>
-  <button class="btn-primary" id="btn-demo" style="background:transparent;color:var(--sub);border:1.5px dashed var(--border);margin-top:8px">✨ Try demo</button>
+  <button class="btn-primary" id="btn-create-family" style="margin-bottom:12px">ðŸ  Create new family</button>
+  <button class="btn-primary" id="btn-join-family" style="background:var(--surface2);color:var(--text)">ðŸ”‘ Join with code</button>
+  <button class="btn-primary" id="btn-demo" style="background:transparent;color:var(--sub);border:1.5px dashed var(--border);margin-top:8px">âœ¨ Try demo</button>
   <div id="join-panel" style="display:none;width:100%;max-width:360px;margin-top:16px">
     <div class="input-group" style="margin-bottom:8px"><label>Family code</label><input type="text" id="join-code-input" placeholder="e.g. AB3X9K2M" autocomplete="off" autocorrect="off" style="text-transform:uppercase;letter-spacing:.1em;font-size:20px;text-align:center"></div>
-    <button class="btn-primary" id="btn-join-confirm">Join →</button>
+    <button class="btn-primary" id="btn-join-confirm">Join â†’</button>
   </div>
 </div>
 
 <!-- Setup -->
 <div id="screen-setup" class="screen hidden">
-  <button onclick="showWelcome()" style="position:absolute;top:18px;left:18px;background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;padding:4px">‹</button>
-  <div class="screen-logo">💰</div>
+  <button onclick="showWelcome()" style="position:absolute;top:18px;left:18px;background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;padding:4px">â€¹</button>
+  <div class="screen-logo">ðŸ’°</div>
   <div class="screen-title">Setup</div>
   <div class="screen-sub">Fill in your details<br>to get started</div>
   <div class="input-group">
     <label>Family code <span style="font-weight:400;text-transform:none;letter-spacing:0">(others use this to join)</span></label>
     <input type="text" id="setup-family-code" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.12em;font-size:20px;text-align:center">
-    <div style="font-size:11px;color:var(--sub);margin-top:5px">Letters and numbers only, 4–12 characters</div>
+    <div style="font-size:11px;color:var(--sub);margin-top:5px">Letters and numbers only, 4â€“12 characters</div>
   </div>
   <div class="input-group"><label>Person 1 name</label><input type="text" id="setup-name1" placeholder="e.g. Byron" autocomplete="off" autocorrect="off"></div>
   <div class="input-group"><label>Person 2 name</label><input type="text" id="setup-name2" placeholder="e.g. Androniki" autocomplete="off" autocorrect="off"></div>
   <div class="input-group"><label>Primary currency</label>
     <select id="setup-currency">
-      <option value="AED">🇦🇪 AED — Dirham</option>
-      <option value="EUR">🇪🇺 EUR — Euro</option>
-      <option value="USD">🇺🇸 USD — Dollar</option>
+      <option value="AED">ðŸ‡¦ðŸ‡ª AED â€” Dirham</option>
+      <option value="EUR">ðŸ‡ªðŸ‡º EUR â€” Euro</option>
+      <option value="USD">ðŸ‡ºðŸ‡¸ USD â€” Dollar</option>
     </select>
   </div>
   <div class="input-group"><label>Monthly budget (primary currency)</label><input type="number" id="setup-budget" placeholder="e.g. 8000" inputmode="numeric" min="0"></div>
-  <div class="input-group"><label>PIN (4 digits)</label><input type="password" id="setup-pin" placeholder="••••" maxlength="4" inputmode="numeric" autocomplete="new-password"></div>
-  <button class="btn-primary" id="btn-setup-save">Save &amp; Start →</button>
+  <div class="input-group"><label>PIN (4 digits)</label><input type="password" id="setup-pin" placeholder="â€¢â€¢â€¢â€¢" maxlength="4" inputmode="numeric" autocomplete="new-password"></div>
+  <button class="btn-primary" id="btn-setup-save">Save &amp; Start â†’</button>
 </div>
 
 <!-- PIN -->
 <div id="screen-pin" class="screen hidden">
-  <div class="screen-logo">🔐</div>
+  <div class="screen-logo">ðŸ”</div>
   <div class="screen-title">Expenses</div>
   <div class="screen-sub" id="pin-sub">Enter your PIN</div>
   <div class="pin-dots">
@@ -297,13 +297,13 @@
     <button class="numpad-btn" data-n="1">1</button><button class="numpad-btn" data-n="2">2</button><button class="numpad-btn" data-n="3">3</button>
     <button class="numpad-btn" data-n="4">4</button><button class="numpad-btn" data-n="5">5</button><button class="numpad-btn" data-n="6">6</button>
     <button class="numpad-btn" data-n="7">7</button><button class="numpad-btn" data-n="8">8</button><button class="numpad-btn" data-n="9">9</button>
-    <button class="numpad-btn empty"></button><button class="numpad-btn" data-n="0">0</button><button class="numpad-btn delete" id="btn-del">⌫</button>
+    <button class="numpad-btn empty"></button><button class="numpad-btn" data-n="0">0</button><button class="numpad-btn delete" id="btn-del">âŒ«</button>
   </div>
 </div>
 
 <!-- Who -->
 <div id="screen-who" class="screen hidden">
-  <div class="screen-logo">👋</div>
+  <div class="screen-logo">ðŸ‘‹</div>
   <div class="screen-title" id="who-greeting">Hi!</div>
   <div class="screen-sub">Who's using the app?</div>
   <div id="who-btns"></div>
@@ -312,7 +312,7 @@
 <!-- App -->
 <div id="screen-app" class="screen hidden">
 
-  <div id="demo-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:6px;z-index:200;letter-spacing:.04em">✨ Demo family — changes are saved &nbsp;<button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:inherit;cursor:pointer">Exit</button></div>
+  <div id="demo-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;text-align:center;padding:6px;z-index:200;letter-spacing:.04em">âœ¨ Demo family â€” changes are saved &nbsp;<button onclick="exitDemo()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-family:inherit;cursor:pointer">Exit</button></div>
 
   <!-- Home -->
   <div id="view-home" class="view active">
@@ -321,7 +321,7 @@
         <div class="home-greeting" id="home-greeting">Welcome!</div>
         <div class="home-period" id="home-period"></div>
       </div>
-      <button class="notif-btn" id="btn-notif" onclick="openNotifications()">🔔<span class="notif-badge" id="notif-badge"></span></button>
+      <button class="notif-btn" id="btn-notif" onclick="openNotifications()">ðŸ””<span class="notif-badge" id="notif-badge"></span></button>
     </div>
     <div id="home-content"></div>
   </div>
@@ -333,9 +333,9 @@
     </div>
     <div class="section-label">Currency</div>
     <div class="toggle-row" id="currency-toggle">
-      <button class="toggle-btn active" data-cur="AED">🇦🇪 AED</button>
-      <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
-      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+      <button class="toggle-btn active" data-cur="AED">ðŸ‡¦ðŸ‡ª AED</button>
+      <button class="toggle-btn" data-cur="EUR">ðŸ‡ªðŸ‡º EUR</button>
+      <button class="toggle-btn" data-cur="USD">ðŸ‡ºðŸ‡¸ USD</button>
     </div>
     <div class="section-label">Category</div>
     <div class="cat-grid" id="cat-grid"></div>
@@ -349,7 +349,7 @@
       <div id="split-user-rows"></div>
     </div>
     <div class="section-label">Description</div>
-    <div class="input-group" style="margin-bottom:16px"><input type="text" id="desc-input" placeholder="e.g. Carrefour, fuel…" autocomplete="off" autocorrect="off"></div>
+    <div class="input-group" style="margin-bottom:16px"><input type="text" id="desc-input" placeholder="e.g. Carrefour, fuelâ€¦" autocomplete="off" autocorrect="off"></div>
     <div class="section-label">Date</div>
     <div class="input-group" style="margin-bottom:24px"><input type="date" id="date-input"></div>
     <button class="btn-primary" id="btn-save-expense">Save</button>
@@ -358,13 +358,13 @@
   <!-- List -->
   <div id="view-list" class="view">
     <div class="month-nav">
-      <button class="month-nav-btn" id="btn-prev-month">‹</button>
+      <button class="month-nav-btn" id="btn-prev-month">â€¹</button>
       <div class="month-nav-title" id="month-title"></div>
-      <button class="month-nav-btn" id="btn-next-month">›</button>
+      <button class="month-nav-btn" id="btn-next-month">â€º</button>
     </div>
     <div class="budget-card" id="budget-card"></div>
     <div style="padding:0 0 10px 0">
-      <input id="list-search" type="search" placeholder="Search expenses…" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:inherit;outline:none" oninput="renderListFiltered()">
+      <input id="list-search" type="search" placeholder="Search expensesâ€¦" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:inherit;outline:none" oninput="renderListFiltered()">
     </div>
     <div id="expense-list"></div>
   </div>
@@ -372,15 +372,15 @@
   <!-- Stats -->
   <div id="view-stats" class="view">
     <div class="month-nav">
-      <button class="month-nav-btn" id="btn-prev-month-s">‹</button>
+      <button class="month-nav-btn" id="btn-prev-month-s">â€¹</button>
       <div class="month-nav-title" id="month-title-s"></div>
-      <button class="month-nav-btn" id="btn-next-month-s">›</button>
+      <button class="month-nav-btn" id="btn-next-month-s">â€º</button>
     </div>
     <div class="section-label" style="margin-top:4px">Report currency</div>
     <div class="toggle-row" id="report-cur-toggle" style="margin-bottom:8px">
-      <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
-      <button class="toggle-btn active" data-cur="EUR">🇪🇺 EUR</button>
-      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+      <button class="toggle-btn" data-cur="AED">ðŸ‡¦ðŸ‡ª AED</button>
+      <button class="toggle-btn active" data-cur="EUR">ðŸ‡ªðŸ‡º EUR</button>
+      <button class="toggle-btn" data-cur="USD">ðŸ‡ºðŸ‡¸ USD</button>
     </div>
     <div class="fx-note" id="fx-note" style="margin-bottom:16px"></div>
     <div class="stats-card"><h3 id="stats-pie-title">By category</h3><div class="chart-wrap"><canvas id="pie-chart"></canvas></div></div>
@@ -394,27 +394,27 @@
     <!-- Appearance -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('appearance')">
-        <span class="acc-header-left">☀️ Appearance</span><span class="acc-arrow" id="arr-appearance">›</span>
+        <span class="acc-header-left">â˜€ï¸ Appearance</span><span class="acc-arrow" id="arr-appearance">â€º</span>
       </button>
       <div class="acc-body" id="acc-appearance"><div class="acc-inner">
         <div class="toggle-row" id="theme-toggle">
-          <button class="toggle-btn" data-theme="light">☀️ Light</button>
-          <button class="toggle-btn active" data-theme="dark">🌙 Dark</button>
-          <button class="toggle-btn" data-theme="system">⚙️ System</button>
+          <button class="toggle-btn" data-theme="light">â˜€ï¸ Light</button>
+          <button class="toggle-btn active" data-theme="dark">ðŸŒ™ Dark</button>
+          <button class="toggle-btn" data-theme="system">âš™ï¸ System</button>
         </div>
       </div></div>
     </div>
     <!-- Users -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('users')">
-        <span class="acc-header-left">👥 Users</span><span class="acc-arrow" id="arr-users">›</span>
+        <span class="acc-header-left">ðŸ‘¥ Users</span><span class="acc-arrow" id="arr-users">â€º</span>
       </button>
       <div class="acc-body" id="acc-users"><div class="acc-inner" id="acc-users-content"></div></div>
     </div>
     <!-- Security -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('security')">
-        <span class="acc-header-left">🔒 Security</span><span class="acc-arrow" id="arr-security">›</span>
+        <span class="acc-header-left">ðŸ”’ Security</span><span class="acc-arrow" id="arr-security">â€º</span>
       </button>
       <div class="acc-body" id="acc-security"><div class="acc-inner">
         <div class="section-label" style="margin-bottom:8px">PIN Mode</div>
@@ -423,22 +423,22 @@
           <button class="toggle-btn" data-mode="individual">Per-user PIN</button>
         </div>
         <div class="section-label" style="margin-bottom:8px">Change PIN</div>
-        <div class="input-group"><label>Current PIN</label><input type="password" id="pin-current" placeholder="••••" maxlength="4" inputmode="numeric"></div>
-        <div class="input-group"><label>New PIN</label><input type="password" id="pin-new" placeholder="••••" maxlength="4" inputmode="numeric"></div>
-        <div class="input-group" style="margin-bottom:4px"><label>Confirm new PIN</label><input type="password" id="pin-confirm" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+        <div class="input-group"><label>Current PIN</label><input type="password" id="pin-current" placeholder="â€¢â€¢â€¢â€¢" maxlength="4" inputmode="numeric"></div>
+        <div class="input-group"><label>New PIN</label><input type="password" id="pin-new" placeholder="â€¢â€¢â€¢â€¢" maxlength="4" inputmode="numeric"></div>
+        <div class="input-group" style="margin-bottom:4px"><label>Confirm new PIN</label><input type="password" id="pin-confirm" placeholder="â€¢â€¢â€¢â€¢" maxlength="4" inputmode="numeric"></div>
         <button class="btn-primary" id="btn-change-pin" style="margin-top:8px">Change PIN</button>
       </div></div>
     </div>
     <!-- Budget -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('budget')">
-        <span class="acc-header-left">💰 Budget</span><span class="acc-arrow" id="arr-budget">›</span>
+        <span class="acc-header-left">ðŸ’° Budget</span><span class="acc-arrow" id="arr-budget">â€º</span>
       </button>
       <div class="acc-body" id="acc-budget"><div class="acc-inner">
         <div class="budget-input-row" style="margin-bottom:4px">
-          <div class="budget-input-icon">📅</div>
+          <div class="budget-input-icon">ðŸ“…</div>
           <span class="budget-input-label" style="font-size:15px;font-weight:600">Monthly total</span>
-          <input type="text" id="total-budget-input" class="budget-input-field" placeholder="—" inputmode="decimal" style="width:100px">
+          <input type="text" id="total-budget-input" class="budget-input-field" placeholder="â€”" inputmode="decimal" style="width:100px">
           <select id="total-budget-cur" class="budget-cur-select">
             <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option>
           </select>
@@ -451,21 +451,21 @@
     <!-- Recurring -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('recurring')">
-        <span class="acc-header-left">🔁 Recurring</span><span class="acc-arrow" id="arr-recurring">›</span>
+        <span class="acc-header-left">ðŸ” Recurring</span><span class="acc-arrow" id="arr-recurring">â€º</span>
       </button>
       <div class="acc-body" id="acc-recurring"><div class="acc-inner" id="acc-recurring-content"></div></div>
     </div>
     <!-- Categories -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('categories')">
-        <span class="acc-header-left">🏷️ Categories</span><span class="acc-arrow" id="arr-categories">›</span>
+        <span class="acc-header-left">ðŸ·ï¸ Categories</span><span class="acc-arrow" id="arr-categories">â€º</span>
       </button>
       <div class="acc-body" id="acc-categories"><div class="acc-inner" id="acc-categories-content"></div></div>
     </div>
     <!-- Data -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('data')">
-        <span class="acc-header-left">📤 Data</span><span class="acc-arrow" id="arr-data">›</span>
+        <span class="acc-header-left">ðŸ“¤ Data</span><span class="acc-arrow" id="arr-data">â€º</span>
       </button>
       <div class="acc-body" id="acc-data"><div class="acc-inner">
         <div id="family-code-box" style="background:var(--surface2);border-radius:12px;padding:14px 16px;margin-bottom:16px">
@@ -479,14 +479,14 @@
         <p style="font-size:13px;color:var(--sub);margin-bottom:16px">Export all expenses to a CSV file (last 2 years).</p>
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
-        <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.2.0</strong> · deployed <strong>2026-06-27 11:58</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">ðŸ”„ Check for updates</button>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.2.0</strong> Â· deployed <strong>2026-06-27 12:03</strong> Â· <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
     <!-- About -->
     <div class="acc-item">
       <button class="acc-header" onclick="toggleAcc('about')">
-        <span class="acc-header-left">ℹ️ About</span><span class="acc-arrow" id="arr-about">›</span>
+        <span class="acc-header-left">â„¹ï¸ About</span><span class="acc-arrow" id="arr-about">â€º</span>
       </button>
       <div class="acc-body" id="acc-about"><div class="acc-inner">
         <div style="text-align:center;padding:8px 0 16px">
@@ -503,17 +503,17 @@
   </div>
 
   <nav class="tab-bar">
-    <button class="tab-btn active" data-view="home"><span class="tab-icon">🏠</span><span>Home</span></button>
-    <button class="tab-btn" data-view="add"><span class="tab-icon">➕</span><span>Add</span></button>
-    <button class="tab-btn" data-view="list"><span class="tab-icon">📋</span><span>List</span></button>
-    <button class="tab-btn" data-view="stats"><span class="tab-icon">📊</span><span>Stats</span></button>
-    <button class="tab-btn" data-view="settings"><span class="tab-icon">⚙️</span><span>Settings</span></button>
+    <button class="tab-btn active" data-view="home"><span class="tab-icon">ðŸ </span><span>Home</span></button>
+    <button class="tab-btn" data-view="add"><span class="tab-icon">âž•</span><span>Add</span></button>
+    <button class="tab-btn" data-view="list"><span class="tab-icon">ðŸ“‹</span><span>List</span></button>
+    <button class="tab-btn" data-view="stats"><span class="tab-icon">ðŸ“Š</span><span>Stats</span></button>
+    <button class="tab-btn" data-view="settings"><span class="tab-icon">âš™ï¸</span><span>Settings</span></button>
   </nav>
 </div>
 
 <!-- Error -->
 <div id="screen-error" class="screen hidden">
-  <div class="screen-logo">⚠️</div>
+  <div class="screen-logo">âš ï¸</div>
   <div class="screen-title">Connection Error</div>
   <p id="error-msg">Could not connect to Firebase.</p>
 </div>
@@ -541,9 +541,9 @@
   </div>
   <div class="section-label">Currency</div>
   <div class="toggle-row" id="edit-currency-toggle" style="margin-bottom:16px">
-    <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
-    <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
-    <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+    <button class="toggle-btn" data-cur="AED">ðŸ‡¦ðŸ‡ª AED</button>
+    <button class="toggle-btn" data-cur="EUR">ðŸ‡ªðŸ‡º EUR</button>
+    <button class="toggle-btn" data-cur="USD">ðŸ‡ºðŸ‡¸ USD</button>
   </div>
   <div class="section-label">Category</div>
   <div class="cat-grid" id="edit-cat-grid" style="margin-bottom:16px"></div>
@@ -574,7 +574,7 @@
   <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">
     <div>
       <div class="section-label" style="margin-bottom:6px">Icon</div>
-      <div id="cat-icon-display" style="width:64px;height:56px;font-size:30px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent);border-radius:12px;background:var(--surface2)">📦</div>
+      <div id="cat-icon-display" onclick="toggleEmojiGrid()" style="width:64px;height:56px;font-size:28px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent);border-radius:12px;background:var(--surface2);cursor:pointer;position:relative"><span id="cat-icon-emoji">ðŸ“¦</span><span style="position:absolute;bottom:2px;right:4px;font-size:9px;color:var(--sub)">âœï¸</span></div>
     </div>
     <div style="flex:1">
       <div class="section-label" style="margin-bottom:6px">Name</div>
@@ -582,8 +582,7 @@
         style="width:100%;padding:14px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:16px;outline:none">
     </div>
   </div>
-  <div class="section-label" style="margin-bottom:8px">Choose icon</div>
-  <div id="cat-emoji-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px"></div>
+  <div id="cat-emoji-grid" style="display:none;grid-template-columns:repeat(8,1fr);gap:4px;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:20px"></div>
   <div class="section-label" style="margin-bottom:10px">Color</div>
   <div id="cat-color-picker" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px"></div>
   <div style="display:flex;gap:10px">
@@ -610,7 +609,7 @@
   <div class="section-label">Category</div>
   <div class="cat-grid" id="rec-cat-grid" style="margin-bottom:16px"></div>
   <div class="section-label">Day of month</div>
-  <div class="input-group" style="margin-bottom:16px"><input type="number" id="rec-day" placeholder="1–28" min="1" max="28" inputmode="numeric"></div>
+  <div class="input-group" style="margin-bottom:16px"><input type="number" id="rec-day" placeholder="1â€“28" min="1" max="28" inputmode="numeric"></div>
   <div class="section-label">Who pays?</div>
   <div class="who-chips" id="rec-who-selector" style="margin-bottom:16px"></div>
   <div class="split-panel" id="rec-split-panel" style="display:none;margin-bottom:16px">
@@ -627,12 +626,12 @@
 </div>
 
 <script>
-// ─── Multi-tenant ───
+// â”€â”€â”€ Multi-tenant â”€â”€â”€
 let familyId = localStorage.getItem('familyId');
 let isDemoMode = false;
 function genFamilyId() { return Math.random().toString(36).slice(2,10).toUpperCase(); }
 function fref(path) { return db.ref(`families/${familyId}/${path}`); }
-function demoGuard() { if(isDemoMode){showToast('✨ Demo mode — changes not saved');return true;} return false; }
+function demoGuard() { if(isDemoMode){showToast('âœ¨ Demo mode â€” changes not saved');return true;} return false; }
 
 const firebaseConfig = {
   apiKey:"AIzaSyDtxQ_l4XfVELnM2C9nN_cHECDMc7CzEdE",
@@ -644,8 +643,8 @@ const firebaseConfig = {
   appId:"1:895799041673:web:d9f442c6a3d9f792f37058"
 };
 
-// ─── FX ───
-const CURRENCIES = { AED:{symbol:'AED',flag:'🇦🇪'}, EUR:{symbol:'€',flag:'🇪🇺'}, USD:{symbol:'$',flag:'🇺🇸'} };
+// â”€â”€â”€ FX â”€â”€â”€
+const CURRENCIES = { AED:{symbol:'AED',flag:'ðŸ‡¦ðŸ‡ª'}, EUR:{symbol:'â‚¬',flag:'ðŸ‡ªðŸ‡º'}, USD:{symbol:'$',flag:'ðŸ‡ºðŸ‡¸'} };
 let fxToEur = { AED:0.2519, EUR:1, USD:0.9259 };
 let fxFetched = false, fxFetchedAt = null;
 
@@ -663,7 +662,7 @@ function toEur(amount, cur) { return amount * (fxToEur[cur] || 1); }
 function eurToReport(eur)   { return eur / (fxToEur[reportCur] || 1); }
 function fmt(n, cur='AED') {
   const s = Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  return cur==='EUR'?'€'+s:cur==='USD'?'$'+s:'AED '+s;
+  return cur==='EUR'?'â‚¬'+s:cur==='USD'?'$'+s:'AED '+s;
 }
 function fmtEur(n)    { return fmt(n,'EUR'); }
 function fmtReport(e) { return fmt(eurToReport(e), reportCur); }
@@ -672,7 +671,7 @@ function cssVar(n)    { return getComputedStyle(document.body).getPropertyValue(
 function round2(n)    { return Math.round(n*100)/100; }
 function parseAmt(v)  { return parseFloat(String(v).replace(',','.')) || 0; }
 
-// ─── Theme ───
+// â”€â”€â”€ Theme â”€â”€â”€
 function applyTheme(theme) {
   document.body.classList.remove('theme-light','theme-system');
   if (theme==='light'||theme==='system') document.body.classList.add('theme-'+theme);
@@ -685,26 +684,26 @@ function setupThemeToggle() {
     btn.addEventListener('click', () => { applyTheme(btn.dataset.theme); if ($('view-stats').classList.contains('active')) renderStats(statsYear,statsMonth); }));
 }
 
-// ─── Categories ───
+// â”€â”€â”€ Categories â”€â”€â”€
 const DEFAULT_CATS = [
-  {id:'food',icon:'🍔',label:'Food',color:'#f97316'},
-  {id:'market',icon:'🛒',label:'Shopping',color:'#3b82f6'},
-  {id:'fuel',icon:'⛽',label:'Fuel',color:'#ef4444'},
-  {id:'health',icon:'💊',label:'Health',color:'#22c55e'},
-  {id:'home',icon:'🏠',label:'Home',color:'#8b5cf6'},
-  {id:'fun',icon:'🎭',label:'Entertainment',color:'#ec4899'},
-  {id:'clothes',icon:'👕',label:'Clothes',color:'#06b6d4'},
-  {id:'beauty',icon:'💅',label:'Beauty',color:'#d946ef'},
-  {id:'transport',icon:'🚌',label:'Transport',color:'#84cc16'},
-  {id:'tech',icon:'📱',label:'Tech',color:'#f59e0b'},
-  {id:'other',icon:'📦',label:'Other',color:'#6b7280'},
+  {id:'food',icon:'ðŸ”',label:'Food',color:'#f97316'},
+  {id:'market',icon:'ðŸ›’',label:'Shopping',color:'#3b82f6'},
+  {id:'fuel',icon:'â›½',label:'Fuel',color:'#ef4444'},
+  {id:'health',icon:'ðŸ’Š',label:'Health',color:'#22c55e'},
+  {id:'home',icon:'ðŸ ',label:'Home',color:'#8b5cf6'},
+  {id:'fun',icon:'ðŸŽ­',label:'Entertainment',color:'#ec4899'},
+  {id:'clothes',icon:'ðŸ‘•',label:'Clothes',color:'#06b6d4'},
+  {id:'beauty',icon:'ðŸ’…',label:'Beauty',color:'#d946ef'},
+  {id:'transport',icon:'ðŸšŒ',label:'Transport',color:'#84cc16'},
+  {id:'tech',icon:'ðŸ“±',label:'Tech',color:'#f59e0b'},
+  {id:'other',icon:'ðŸ“¦',label:'Other',color:'#6b7280'},
 ];
 let activeCats = [...DEFAULT_CATS];
 let catMap = Object.fromEntries(activeCats.map(c=>[c.id,c]));
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const USER_COLORS = ['#6366f1','#ec4899','#f97316','#22c55e','#06b6d4'];
 
-// ─── State ───
+// â”€â”€â”€ State â”€â”€â”€
 let db, config;
 let users = [];
 let activeUserId = null;
@@ -742,7 +741,7 @@ function resolveUserId(who) {
 function getUserName(who) {
   const id = resolveUserId(who);
   const u = users.find(u=>u.id===id);
-  return u ? (u.deleted ? u.name+' (deleted)' : u.name) : '—';
+  return u ? (u.deleted ? u.name+' (deleted)' : u.name) : 'â€”';
 }
 function userColor(userId) {
   const idx = users.findIndex(u=>u.id===userId);
@@ -750,7 +749,7 @@ function userColor(userId) {
 }
 function activeUsers() { return users.filter(u=>!u.deleted); }
 
-// ─── Boot ───
+// â”€â”€â”€ Boot â”€â”€â”€
 async function boot() {
   try {
     firebase.initializeApp(firebaseConfig);
@@ -778,7 +777,7 @@ async function boot() {
   }
 }
 
-// ─── Welcome ───
+// â”€â”€â”€ Welcome â”€â”€â”€
 function showWelcome() {
   showScreen('screen-welcome');
   $('btn-create-family').onclick = () => {
@@ -797,14 +796,14 @@ function showWelcome() {
 async function joinFamily() {
   const code = ($('join-code-input').value||'').trim().toUpperCase();
   if(code.length<6){showToast('Enter a valid family code');return;}
-  $('btn-join-confirm').textContent='Checking…';
+  $('btn-join-confirm').textContent='Checkingâ€¦';
   try {
     const snap = await db.ref(`families/${code}/config`).once('value');
-    if(!snap.val()){showToast('❌ Family not found');$('btn-join-confirm').textContent='Join →';return;}
+    if(!snap.val()){showToast('âŒ Family not found');$('btn-join-confirm').textContent='Join â†’';return;}
     familyId=code; localStorage.setItem('familyId',familyId);
     config=snap.val(); config=await migrateIfNeeded(config); users=config.users||[];
     initPIN();
-  } catch(e){showToast('Error — try again');$('btn-join-confirm').textContent='Join →';}
+  } catch(e){showToast('Error â€” try again');$('btn-join-confirm').textContent='Join â†’';}
 }
 
 window.leaveFamily=function(){
@@ -817,7 +816,7 @@ window.checkForUpdates=function(){
   window.location.reload();
 };
 window.copyFamilyCode=function(){
-  navigator.clipboard?.writeText(familyId).then(()=>showToast('✓ Code copied!')).catch(()=>showToast(familyId));
+  navigator.clipboard?.writeText(familyId).then(()=>showToast('âœ“ Code copied!')).catch(()=>showToast(familyId));
 };
 window.exitDemo=function(){ isDemoMode=false; localStorage.removeItem('familyId'); familyId=null; location.reload(); };
 
@@ -831,7 +830,7 @@ async function migrateIfNeeded(cfg) {
   return {...cfg, ...upd};
 }
 
-// ─── Setup ───
+// â”€â”€â”€ Setup â”€â”€â”€
 function initSetup() {
   showScreen('screen-setup');
   // pre-fill code field with random suggestion
@@ -853,7 +852,7 @@ function initSetup() {
     if (!/^\d{4}$/.test(pin)) { showToast('PIN must be 4 digits'); return; }
     // check uniqueness
     const existing = await db.ref(`families/${codeRaw}/config`).once('value');
-    if(existing.val()){showToast('❌ Code already taken — choose another');return;}
+    if(existing.val()){showToast('âŒ Code already taken â€” choose another');return;}
     familyId = codeRaw;
     localStorage.setItem('familyId', familyId);
     const id1='u'+Date.now(), id2='u'+(Date.now()+1);
@@ -872,7 +871,7 @@ function initSetup() {
   });
 }
 
-// ─── PIN ───
+// â”€â”€â”€ PIN â”€â”€â”€
 let _pinListenersAdded = false;
 function initPIN() {
   showScreen('screen-pin');
@@ -904,11 +903,11 @@ async function pressDigit(n) {
 }
 function showPinError() {
   const sub=$('pin-sub');
-  sub.textContent='Wrong PIN — try again'; sub.style.color='var(--danger)';
+  sub.textContent='Wrong PIN â€” try again'; sub.style.color='var(--danger)';
   setTimeout(()=>{ pinEntry=''; updateDots(); sub.textContent='Enter your PIN'; sub.style.color=''; },900);
 }
 
-// ─── Who ───
+// â”€â”€â”€ Who â”€â”€â”€
 function showWho() {
   const h=new Date().getHours();
   $('who-greeting').textContent = h<12?'Good morning!':h<17?'Good afternoon!':'Good evening!';
@@ -922,7 +921,7 @@ function showWho() {
   showScreen('screen-who');
 }
 
-// ─── Launch App ───
+// â”€â”€â”€ Launch App â”€â”€â”€
 function launchApp() {
   showScreen('screen-app');
   selectedCur = config.defaultCurrency||'AED';
@@ -980,7 +979,7 @@ function launchApp() {
   });
 }
 
-// ─── Cat Grid ───
+// â”€â”€â”€ Cat Grid â”€â”€â”€
 function buildCatGrid(gridId, isEdit=false, isRec=false) {
   const grid=$(gridId); if(!grid) return;
   const current = isEdit?editCat:isRec?recCat:selectedCat;
@@ -999,7 +998,7 @@ function buildCatGrid(gridId, isEdit=false, isRec=false) {
   });
 }
 
-// ─── Currency Toggle ───
+// â”€â”€â”€ Currency Toggle â”€â”€â”€
 function setupCurrencyToggle() {
   document.querySelectorAll('#currency-toggle .toggle-btn').forEach(btn=>
     btn.addEventListener('click',()=>{
@@ -1019,7 +1018,7 @@ function setupReportCurrencyToggle() {
     }));
 }
 
-// ─── Who Selector ───
+// â”€â”€â”€ Who Selector â”€â”€â”€
 function buildWhoSelector(containerId, currentWho, context) {
   const container=$(containerId); if(!container) return;
   container.innerHTML='';
@@ -1032,7 +1031,7 @@ function buildWhoSelector(containerId, currentWho, context) {
   });
   const splitBtn=document.createElement('button');
   splitBtn.className='who-chip split-chip'+(currentWho==='split'?' active':'');
-  splitBtn.textContent='🔀 Split';
+  splitBtn.textContent='ðŸ”€ Split';
   splitBtn.onclick=()=>selectWho('split', containerId, context);
   container.appendChild(splitBtn);
 }
@@ -1097,7 +1096,7 @@ function buildSplitRows(rowsId, context) {
   const cur = context==='edit'?editCur:context==='rec'?($('rec-currency')?.value||'AED'):selectedCur;
   container.insertAdjacentHTML('afterend',
     `<div id="split-remaining-${context}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0 2px;font-size:13px;color:${over?'var(--danger)':exact?'var(--success)':'var(--sub)'}">
-      <span>${over?'⚠️ Over by':'Remaining:'}</span>
+      <span>${over?'âš ï¸ Over by':'Remaining:'}</span>
       <strong>${fmt(over?Math.abs(remaining):remaining, cur)}</strong>
     </div>`);
 }
@@ -1141,7 +1140,7 @@ function updateSplitAmount(userId, context, val) {
   buildSplitRows(rowsId, context);
 }
 
-// ─── Tabs ───
+// â”€â”€â”€ Tabs â”€â”€â”€
 function setupTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchView(btn.dataset.view)));
 }
@@ -1164,7 +1163,7 @@ function collapseAllAcc() {
   });
 }
 
-// ─── Firebase ───
+// â”€â”€â”€ Firebase â”€â”€â”€
 let unsubscribe=null;
 function subscribeCurrentMonth() {
   if(unsubscribe) unsubscribe();
@@ -1197,12 +1196,12 @@ async function changeStatsMonth(dir) {
   renderStats(statsYear,statsMonth);
 }
 
-// ─── Home ───
+// â”€â”€â”€ Home â”€â”€â”€
 async function renderHome() {
   const now=new Date(), h=now.getHours();
   const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   const uname=users.find(u=>u.id===activeUserId)?.name||'';
-  $('home-greeting').textContent=`${greet}, ${uname}! 👋`;
+  $('home-greeting').textContent=`${greet}, ${uname}! ðŸ‘‹`;
 
   // Home always shows today's month regardless of list navigation
   const homeY=now.getFullYear(), homeM=now.getMonth()+1;
@@ -1242,7 +1241,7 @@ async function renderHome() {
     const diff=totalPrim-prevTotal, pct=Math.round(Math.abs(diff)/prevTotal*100);
     const up=diff>0;
     compHtml=`<span style="font-size:13px;font-weight:600;color:${up?'var(--danger)':'var(--success)'}">
-      ${up?'↑':'↓'} ${pct}% vs ${MONTHS[prevM-1]} (1–${daysPassed})</span>`;
+      ${up?'â†‘':'â†“'} ${pct}% vs ${MONTHS[prevM-1]} (1â€“${daysPassed})</span>`;
   }
 
   const byCat={};
@@ -1268,18 +1267,18 @@ async function renderHome() {
       ${topCats.map(([id,eur])=>{const cat=catMap[id]||catMap.other;const pct=totalEur?Math.round(eur/totalEur*100):0;return`<div class="cat-stat-row"><div class="cat-stat-dot" style="background:${cat.color}"></div><span class="cat-stat-name">${cat.icon} ${cat.label}</span><span class="cat-stat-amount">${fmtEur(eur)}</span><span class="cat-stat-pct">${pct}%</span></div>`;}).join('')}
     </div>`:''}
     ${pendingRecurring.length?`<div class="stats-card" style="margin-bottom:20px;border:1.5px solid var(--warning)">
-      <h3>🔁 Recurring pending (${pendingRecurring.length})</h3>
+      <h3>ðŸ” Recurring pending (${pendingRecurring.length})</h3>
       ${pendingRecurring.map(r=>`<div class="cat-stat-row"><span class="cat-stat-name">${catMap[r.cat]?.icon||''} ${escHtml(r.desc)}</span><span class="cat-stat-amount">${fmt(r.amount,r.currency||primCur)}</span></div>`).join('')}
-      <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
+      <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review â†’</button>
     </div>`:''}
-    <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.2.0 · 2026-06-27 11:58</p>
+    <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">ï¼‹ Add Expense</button>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.2.0 Â· 2026-06-27 12:03</p>
   `;
 
   updateNotifBadge();
 }
 
-// ─── Activity (changes by other users) ───
+// â”€â”€â”€ Activity (changes by other users) â”€â”€â”€
 async function loadLastSeenAndActivity() {
   const snap = await fref(`config/lastSeen/${activeUserId}`).once('value');
   lastSeen = snap.val() || 0;
@@ -1300,7 +1299,7 @@ async function loadLastSeenAndActivity() {
         type: 'activity',
         icon: cat.icon,
         title: `${adder} added "${escHtml(e.desc)}"`,
-        desc: `${fmt(e.amount, e.currency||primCur)} · ${cat.label} · ${fmtDate(e.date)}`,
+        desc: `${fmt(e.amount, e.currency||primCur)} Â· ${cat.label} Â· ${fmtDate(e.date)}`,
         ts: e.ts
       });
     });
@@ -1308,7 +1307,7 @@ async function loadLastSeenAndActivity() {
   activityNotifs.sort((a,b) => b.ts - a.ts);
 }
 
-// ─── Notifications ───
+// â”€â”€â”€ Notifications â”€â”€â”€
 function checkPendingRecurring() {
   const ym=`${currentYear}-${currentMonth}`;
   pendingRecurring = Object.values(recurringList).filter(r=>r.active && r.lastAdded!==ym);
@@ -1320,7 +1319,7 @@ function buildNotifications() {
   const primCur=config.defaultCurrency||'AED';
   notifications=[];
   pendingRecurring.forEach(r=>{
-    notifications.push({type:'recurring',id:r.id,icon:catMap[r.cat]?.icon||'🔁',title:escHtml(r.desc),desc:`${fmt(r.amount,r.currency||primCur)} · Day ${r.day} of month`,rec:r});
+    notifications.push({type:'recurring',id:r.id,icon:catMap[r.cat]?.icon||'ðŸ”',title:escHtml(r.desc),desc:`${fmt(r.amount,r.currency||primCur)} Â· Day ${r.day} of month`,rec:r});
   });
   activityNotifs.forEach(a => notifications.push(a));
 }
@@ -1336,12 +1335,12 @@ window.openNotifications=function() {
   buildNotifications();
   const list=$('notif-list');
   if(!notifications.length) {
-    list.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><p>All caught up!</p></div>';
+    list.innerHTML='<div class="empty-state"><div class="empty-icon">âœ…</div><p>All caught up!</p></div>';
   } else {
     const recurring = notifications.filter(n=>n.type==='recurring');
     const activity  = notifications.filter(n=>n.type==='activity');
     let html='';
-    if(recurring.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">🔁 Recurring</div>`;
+    if(recurring.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">ðŸ” Recurring</div>`;
     html+=recurring.map((n,i)=>`
       <div class="notif-item" id="notif-item-${i}">
         <div class="notif-icon">${n.icon}</div>
@@ -1354,7 +1353,7 @@ window.openNotifications=function() {
           </div>
         </div>
       </div>`).join('');
-    if(activity.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:${recurring.length?'20px':0} 0 10px">👥 Recent activity</div>`;
+    if(activity.length) html+=`<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin:${recurring.length?'20px':0} 0 10px">ðŸ‘¥ Recent activity</div>`;
     html+=activity.map(n=>`
       <div class="notif-item">
         <div class="notif-icon">${n.icon}</div>
@@ -1396,7 +1395,7 @@ window.addPendingRecurring = async function(recId, idx) {
   buildNotifications(); updateNotifBadge();
   const item=$(`notif-item-${idx}`); if(item) item.remove();
   if(!pendingRecurring.length) closeNotifications();
-  showToast(`✓ Added: ${rec.desc}`);
+  showToast(`âœ“ Added: ${rec.desc}`);
   renderHome();
 };
 
@@ -1411,11 +1410,11 @@ window.skipPendingRecurring = async function(recId, idx) {
   renderHome();
 };
 
-// ─── Save Expense ───
+// â”€â”€â”€ Save Expense â”€â”€â”€
 async function saveExpense() {
   const amount=parseAmt($('amount-input').value);
-  if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
-  if(!selectedWho){showToast('⚠️ Select who paid');return;}
+  if(!amount||amount<=0){showToast('âš ï¸ Enter an amount');return;}
+  if(!selectedWho){showToast('âš ï¸ Select who paid');return;}
   const dateVal=$('date-input').value||today();
   if(dateVal>today()&&!confirm(`The date you entered (${fmtDate(dateVal)}) is in the future. Are you sure?`)){return;}
   const [y,m]=dateVal.split('-').map(Number);
@@ -1423,15 +1422,15 @@ async function saveExpense() {
   const expData={amount,desc,cat:selectedCat,currency:selectedCur,date:dateVal,ts:Date.now(),addedBy:activeUserId};
   if(selectedWho==='split'){
     const sel=splitDetails.filter(s=>s.selected);
-    if(sel.length<2){showToast('⚠️ Select at least 2 people');return;}
+    if(sel.length<2){showToast('âš ï¸ Select at least 2 people');return;}
     const total=round2(sel.reduce((s,d)=>s+d.amount,0));
-    if(Math.abs(total-amount)>0.02){showToast(`⚠️ Split total (${fmt(total,selectedCur)}) ≠ amount`);return;}
+    if(Math.abs(total-amount)>0.02){showToast(`âš ï¸ Split total (${fmt(total,selectedCur)}) â‰  amount`);return;}
     expData.split=sel.map(s=>({userId:s.userId,amount:s.amount,pct:s.pct}));
   } else {
     expData.who=selectedWho;
   }
   await fref(`expenses/${y}/${m}`).push(expData);
-  showToast('✓ Saved!');
+  showToast('âœ“ Saved!');
   $('amount-input').value=''; $('desc-input').value=''; $('date-input').value=today();
   splitDetails=[]; $('split-panel').style.display='none';
   selectedWho=activeUsers()[0]?.id||null;
@@ -1439,7 +1438,7 @@ async function saveExpense() {
   selectedCat=activeCats[0]?.id||'food'; buildCatGrid('cat-grid',false);
 }
 
-// ─── Edit Modal ───
+// â”€â”€â”€ Edit Modal â”€â”€â”€
 function setupEditModal() {
   document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(btn=>
     btn.addEventListener('click',()=>{
@@ -1480,7 +1479,7 @@ function closeEditModal() { $('edit-scrim').classList.remove('open'); $('edit-mo
 async function saveEdit() {
   if(!editState) return;
   const amount=parseAmt($('edit-amount').value);
-  if(!amount||amount<=0){showToast('⚠️ Enter an amount');return;}
+  if(!amount||amount<=0){showToast('âš ï¸ Enter an amount');return;}
   const dateVal=$('edit-date').value||today();
   const [y,m]=dateVal.split('-').map(Number);
   const desc=$('edit-desc').value.trim()||(catMap[editCat]?.label||editCat);
@@ -1494,16 +1493,16 @@ async function saveEdit() {
     await fref(`expenses/${y}/${m}`).push({...expData,ts:Date.now()});
     await fref(`expenses/${year}/${month}/${id}`).remove();
   } else { await fref(`expenses/${year}/${month}/${id}`).update(expData); }
-  closeEditModal(); showToast('✓ Updated!');
+  closeEditModal(); showToast('âœ“ Updated!');
 }
 
-// ─── Delete ───
+// â”€â”€â”€ Delete â”€â”€â”€
 window.deleteExpense=async function(year,month,id) {
   if(!confirm('Delete this expense?')) return;
   await fref(`expenses/${year}/${month}/${id}`).remove();
 };
 
-// ─── Render List ───
+// â”€â”€â”€ Render List â”€â”€â”€
 function renderListFiltered() {
   const q=($('list-search')?.value||'').trim().toLowerCase();
   if(!q){ renderList(currentYear,currentMonth,listExpenses); return; }
@@ -1535,7 +1534,7 @@ function renderList(year,month,data,isFiltered=false) {
   $('budget-card').innerHTML=html;
 
   const el=$('expense-list');
-  if(!items.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🧾</div><p>No expenses for this month</p></div>`;return;}
+  if(!items.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">ðŸ§¾</div><p>No expenses for this month</p></div>`;return;}
   const byDate={};
   items.sort((a,b)=>b.ts-a.ts).forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e);});
   el.innerHTML=Object.entries(byDate).sort(([a],[b])=>b.localeCompare(a)).map(([date,exps])=>`
@@ -1543,7 +1542,7 @@ function renderList(year,month,data,isFiltered=false) {
     ${exps.map(e=>{
       const cat=catMap[e.cat]||catMap.other, cur=e.currency||primCur;
       const isSplit=!!e.split;
-      const whoLine=isSplit?`🔀 ${e.split.map(s=>getUserName(s.userId)).join(' · ')}`:`${getUserName(e.who)}`;
+      const whoLine=isSplit?`ðŸ”€ ${e.split.map(s=>getUserName(s.userId)).join(' Â· ')}`:`${getUserName(e.who)}`;
       return`<div class="expense-item">
         <div class="expense-cat-icon" style="background:${cat.color}22">${cat.icon}</div>
         <div class="expense-info"><div class="expense-desc">${escHtml(e.desc)}</div><div class="expense-meta">${cat.label}</div></div>
@@ -1552,13 +1551,13 @@ function renderList(year,month,data,isFiltered=false) {
           ${cur!=='EUR'?`<div class="expense-sub">(${fmtEur(toEur(e.amount,cur))})</div>`:''}
           <div class="expense-sub">${escHtml(whoLine)}</div>
         </div>
-        <button class="expense-edit" onclick="openEditModal(${year},${month},'${e.id}')">✏️</button>
-        <button class="expense-del" onclick="deleteExpense(${year},${month},'${e.id}')">×</button>
+        <button class="expense-edit" onclick="openEditModal(${year},${month},'${e.id}')">âœï¸</button>
+        <button class="expense-del" onclick="deleteExpense(${year},${month},'${e.id}')">Ã—</button>
       </div>`;
     }).join('')}</div>`).join('');
 }
 
-// ─── Stats ───
+// â”€â”€â”€ Stats â”€â”€â”€
 async function renderStats(year,month) {
   $('month-title-s').textContent=`${MONTHS[month-1]} ${year}`;
   const data=(year===currentYear&&month===currentMonth)?listExpenses:await loadMonth(year,month);
@@ -1570,7 +1569,7 @@ async function renderStats(year,month) {
   const byCat={};
   items.forEach(e=>{const eur=toEur(e.amount,e.currency||primCur);byCat[e.cat]=(byCat[e.cat]||0)+eur;});
   const catEntries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  $('stats-pie-title').textContent=`By category — all in ${reportCur}`;
+  $('stats-pie-title').textContent=`By category â€” all in ${reportCur}`;
   if(pieChart){pieChart.destroy();pieChart=null;}
   if(catEntries.length){
     pieChart=new Chart($('pie-chart'),{type:'doughnut',data:{labels:catEntries.map(([id])=>catMap[id]?.label||id),datasets:[{data:catEntries.map(([,v])=>v),backgroundColor:catEntries.map(([id])=>catMap[id]?.color||'#888'),borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',layout:{padding:16},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtReport(ctx.raw)}  (${totalEur?Math.round(ctx.raw/totalEur*100):0}%)`}},datalabels:{display:ctx=>totalEur>0&&ctx.dataset.data[ctx.dataIndex]/totalEur>0.05,formatter:(value,ctx)=>{const id=catEntries[ctx.dataIndex]?.[0];return`${catMap[id]?.icon||''}\n${Math.round(value/totalEur*100)}%`;},color:'#fff',font:{size:10,weight:'700'},textAlign:'center'}}}});
@@ -1582,7 +1581,7 @@ async function renderStats(year,month) {
     const budgetEur=budgetAmt>0?toEur(budgetAmt,budgetCur):0;
     const pctOfTotal=totalEur?Math.round(eur/totalEur*100):0;
     const pctOfBudget=budgetEur>0?eur/budgetEur:0, over=budgetEur>0&&eur>budgetEur;
-    const bar=budgetEur>0?`<div class="cat-budget-bar-row"><div class="cat-budget-bar-wrap"><div class="cat-budget-bar-fill" style="width:${Math.min(pctOfBudget,1)*100}%;background:${over?'var(--danger)':cat.color}"></div></div><span class="cat-budget-label-small">${fmtReport(eur)} / ${fmtReport(budgetEur)} (${Math.round(pctOfBudget*100)}%)${over?' ⚠️':''}</span></div>`:'';
+    const bar=budgetEur>0?`<div class="cat-budget-bar-row"><div class="cat-budget-bar-wrap"><div class="cat-budget-bar-fill" style="width:${Math.min(pctOfBudget,1)*100}%;background:${over?'var(--danger)':cat.color}"></div></div><span class="cat-budget-label-small">${fmtReport(eur)} / ${fmtReport(budgetEur)} (${Math.round(pctOfBudget*100)}%)${over?' âš ï¸':''}</span></div>`:'';
     return`<div class="cat-stat-group"><div class="cat-stat-row"><div class="cat-stat-dot" style="background:${cat.color}"></div><span class="cat-stat-name">${cat.icon} ${cat.label}</span><span class="cat-stat-amount">${fmtReport(eur)}</span><span class="cat-stat-pct">${pctOfTotal}%</span></div>${bar}</div>`;
   }).join(''):noData;
 
@@ -1597,7 +1596,7 @@ async function renderStats(year,month) {
   }).join(''):noData;
 
   const rateAed=(1/fxToEur.AED).toFixed(2), rateUsd=(1/fxToEur.USD).toFixed(4);
-  const fxLabel=fxFetched?`live · updated at ${fmtFxTime()}`:'offline fallback';
+  const fxLabel=fxFetched?`live Â· updated at ${fmtFxTime()}`:'offline fallback';
   $('fx-note').textContent=`Rates (${fxLabel}): 1 EUR = AED ${rateAed} / USD ${rateUsd}`;
   renderTrends(year,month);
 }
@@ -1620,7 +1619,7 @@ async function renderTrends(year,month) {
   trendsChart=new Chart($('trends-chart'),{type:'bar',data:{labels,datasets:[{data:totalsEur.map(e=>eurToReport(e)),backgroundColor:months.map(({year:my,month:mm})=>my===year&&mm===month?'rgba(99,102,241,.85)':'rgba(99,102,241,.3)'),borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw,reportCur)}`}}},scales:{x:{grid:{display:false},ticks:{color:subColor,font:{size:11}}},y:{grid:{color:borderColor},ticks:{color:subColor,font:{size:11},callback:v=>v>=1000?(v/1000).toFixed(1)+'k':Math.round(v)}}}}});
 }
 
-// ─── Settings ───
+// â”€â”€â”€ Settings â”€â”€â”€
 function toggleAcc(id) {
   $('acc-'+id).classList.toggle('open');
   $('arr-'+id).classList.toggle('open');
@@ -1685,7 +1684,7 @@ window.addUser=async function() {
   users.push(newUser);
   await fref('config/users').set(users);
   buildUsersSection(); buildWhoSelector('who-selector',selectedWho,'add');
-  showToast(`✓ Added ${name}`);
+  showToast(`âœ“ Added ${name}`);
 };
 
 window.deleteUser=async function(userId) {
@@ -1710,7 +1709,7 @@ window.setUserPin=async function(userId) {
   const u=users.find(u=>u.id===userId); if(!u) return;
   u.pinHash=hash;
   await fref('config/users').set(users);
-  showToast('✓ PIN set');
+  showToast('âœ“ PIN set');
 };
 
 // Change PIN (shared)
@@ -1720,13 +1719,13 @@ async function changePin() {
   if(!/^\d{4}$/.test(nw)){showToast('New PIN must be 4 digits');return;}
   if(nw!==conf){showToast('PINs do not match');return;}
   const curHash=await sha256(cur);
-  if(curHash!==config.pinHash){showToast('❌ Current PIN is wrong — no changes made');return;}
+  if(curHash!==config.pinHash){showToast('âŒ Current PIN is wrong â€” no changes made');return;}
   if(!confirm(`Change PIN to ${nw}? Make sure you remember it.`)){return;}
   const newHash=await sha256(nw);
   await fref('config/pinHash').set(newHash);
   config.pinHash=newHash;
   $('pin-current').value=''; $('pin-new').value=''; $('pin-confirm').value='';
-  showToast('✓ PIN changed!');
+  showToast('âœ“ PIN changed!');
 }
 
 // Category budgets
@@ -1739,7 +1738,7 @@ function buildCatBudgetInputs() {
     const row=document.createElement('div'); row.className='budget-input-row';
     row.innerHTML=`<div class="budget-input-icon" style="background:${cat.color}22">${cat.icon}</div>
       <span class="budget-input-label">${cat.label}</span>
-      <input type="text" class="budget-input-field" data-cat="${cat.id}" value="${amt}" placeholder="—" inputmode="decimal">
+      <input type="text" class="budget-input-field" data-cat="${cat.id}" value="${amt}" placeholder="â€”" inputmode="decimal">
       <select class="budget-cur-select" data-cat-cur="${cat.id}">
         <option value="AED"${cur==='AED'?' selected':''}>AED</option>
         <option value="EUR"${cur==='EUR'?' selected':''}>EUR</option>
@@ -1760,20 +1759,20 @@ async function saveCategoryBudgets() {
   if(totalAmt>0){config.budget=totalAmt;await fref('config/budget').set(totalAmt);}
   config.categoryBudgets=budgets;
   await fref('config/categoryBudgets').set(budgets);
-  showToast('✓ Budgets saved!');
+  showToast('âœ“ Budgets saved!');
 }
 
-// ─── Recurring ───
+// â”€â”€â”€ Recurring â”€â”€â”€
 function buildRecurringSection() {
   const c=$('acc-recurring-content'); if(!c) return;
   const recs=Object.values(recurringList);
   c.innerHTML=`
     ${recs.length?recs.map(r=>`
       <div class="rec-item">
-        <div class="rec-icon" style="background:${catMap[r.cat]?.color||'#888'}22">${catMap[r.cat]?.icon||'🔁'}</div>
+        <div class="rec-icon" style="background:${catMap[r.cat]?.color||'#888'}22">${catMap[r.cat]?.icon||'ðŸ”'}</div>
         <div class="rec-info">
           <div class="rec-name">${escHtml(r.desc)}</div>
-          <div class="rec-meta">${fmt(r.amount,r.currency||'AED')} · Day ${r.day}${!r.active?' · Paused':''}</div>
+          <div class="rec-meta">${fmt(r.amount,r.currency||'AED')} Â· Day ${r.day}${!r.active?' Â· Paused':''}</div>
         </div>
         <button class="user-action-btn" onclick="openRecModal('${r.id}')">Edit</button>
         <button class="user-action-btn danger" onclick="deleteRecurring('${r.id}')">Delete</button>
@@ -1820,7 +1819,7 @@ async function saveRecurring() {
   } else { data.who=recWho||activeUsers()[0]?.id; }
   if(recEditId){ await fref(`recurring/${recEditId}`).update(data); recurringList[recEditId]={...recurringList[recEditId],...data};
   } else { const ref=await fref('recurring').push(data); recurringList[ref.key]={id:ref.key,...data}; Object.values(recurringList).forEach(r=>{if(!r.id)r.id=ref.key;}); }
-  closeRecModal(); buildRecurringSection(); checkPendingRecurring(); showToast('✓ Saved!');
+  closeRecModal(); buildRecurringSection(); checkPendingRecurring(); showToast('âœ“ Saved!');
 }
 
 window.deleteRecurring=async function(recId) {
@@ -1830,21 +1829,21 @@ window.deleteRecurring=async function(recId) {
   buildRecurringSection(); checkPendingRecurring(); showToast('Deleted');
 };
 
-// ─── Categories Management ───
+// â”€â”€â”€ Categories Management â”€â”€â”€
 const CAT_PALETTE = ['#f97316','#3b82f6','#ef4444','#22c55e','#8b5cf6','#ec4899','#06b6d4','#d946ef','#84cc16','#f59e0b','#6b7280','#14b8a6'];
 const EMOJI_LIST = [
-  '🍔','🍕','🌮','🍣','🍜','🥗','☕','🍺','🥩','🍗','🌯','🍱','🧁','🍰','🍦',
-  '🛒','🛍️','👕','👗','👟','💄','💅','🧴','👜','🧢','💍','👒','🩱','👔','🧣',
-  '🚗','✈️','🚌','⛽','🚂','🛵','🚁','🚢','🏍️','🛺','🚲','🛴','🚐','⛵','🚀',
-  '🏠','💡','🔧','🛋️','🪴','🧹','🔑','🚿','🏗️','🛁','🪑','🖼️','🧺','🪣','🔌',
-  '💊','🏥','🧘','💪','🩺','🩹','❤️','🧬','😷','🦷','🩻','🧪','🏃','🚑','🫀',
-  '🎭','🎬','🎮','🎵','📚','🎯','🏋️','⚽','🎸','🎨','🎪','🎢','🎳','🃏','♟️',
-  '📱','💻','⌚','🎧','📷','🔋','🖥️','⌨️','📡','🖨️','🕹️','💾','📺','📻','🔭',
-  '💰','💳','💵','🏦','📈','💹','🪙','💎','🏧','📊','🧾','💸','🤑','💱','🏪',
-  '🧳','🌍','🏖️','🗺️','🏕️','🎡','🗼','🏔️','🌅','🛂','🎠','🌴','🏝️','⛺','🚡',
-  '📦','✏️','📌','🎁','🔔','⚙️','🐾','👶','🎓','🌿','💐','🪷','🧸','🎀','🌙',
+  'ðŸ”','ðŸ•','ðŸŒ®','ðŸ£','ðŸœ','ðŸ¥—','â˜•','ðŸº','ðŸ¥©','ðŸ—','ðŸŒ¯','ðŸ±','ðŸ§','ðŸ°','ðŸ¦',
+  'ðŸ›’','ðŸ›ï¸','ðŸ‘•','ðŸ‘—','ðŸ‘Ÿ','ðŸ’„','ðŸ’…','ðŸ§´','ðŸ‘œ','ðŸ§¢','ðŸ’','ðŸ‘’','ðŸ©±','ðŸ‘”','ðŸ§£',
+  'ðŸš—','âœˆï¸','ðŸšŒ','â›½','ðŸš‚','ðŸ›µ','ðŸš','ðŸš¢','ðŸï¸','ðŸ›º','ðŸš²','ðŸ›´','ðŸš','â›µ','ðŸš€',
+  'ðŸ ','ðŸ’¡','ðŸ”§','ðŸ›‹ï¸','ðŸª´','ðŸ§¹','ðŸ”‘','ðŸš¿','ðŸ—ï¸','ðŸ›','ðŸª‘','ðŸ–¼ï¸','ðŸ§º','ðŸª£','ðŸ”Œ',
+  'ðŸ’Š','ðŸ¥','ðŸ§˜','ðŸ’ª','ðŸ©º','ðŸ©¹','â¤ï¸','ðŸ§¬','ðŸ˜·','ðŸ¦·','ðŸ©»','ðŸ§ª','ðŸƒ','ðŸš‘','ðŸ«€',
+  'ðŸŽ­','ðŸŽ¬','ðŸŽ®','ðŸŽµ','ðŸ“š','ðŸŽ¯','ðŸ‹ï¸','âš½','ðŸŽ¸','ðŸŽ¨','ðŸŽª','ðŸŽ¢','ðŸŽ³','ðŸƒ','â™Ÿï¸',
+  'ðŸ“±','ðŸ’»','âŒš','ðŸŽ§','ðŸ“·','ðŸ”‹','ðŸ–¥ï¸','âŒ¨ï¸','ðŸ“¡','ðŸ–¨ï¸','ðŸ•¹ï¸','ðŸ’¾','ðŸ“º','ðŸ“»','ðŸ”­',
+  'ðŸ’°','ðŸ’³','ðŸ’µ','ðŸ¦','ðŸ“ˆ','ðŸ’¹','ðŸª™','ðŸ’Ž','ðŸ§','ðŸ“Š','ðŸ§¾','ðŸ’¸','ðŸ¤‘','ðŸ’±','ðŸª',
+  'ðŸ§³','ðŸŒ','ðŸ–ï¸','ðŸ—ºï¸','ðŸ•ï¸','ðŸŽ¡','ðŸ—¼','ðŸ”ï¸','ðŸŒ…','ðŸ›‚','ðŸŽ ','ðŸŒ´','ðŸï¸','â›º','ðŸš¡',
+  'ðŸ“¦','âœï¸','ðŸ“Œ','ðŸŽ','ðŸ””','âš™ï¸','ðŸ¾','ðŸ‘¶','ðŸŽ“','ðŸŒ¿','ðŸ’','ðŸª·','ðŸ§¸','ðŸŽ€','ðŸŒ™',
 ];
-let catEditId = null, catModalColor = CAT_PALETTE[0], catIconSelected = '📦';
+let catEditId = null, catModalColor = CAT_PALETTE[0], catIconSelected = 'ðŸ“¦';
 const DEFAULT_CAT_IDS = new Set(DEFAULT_CATS.map(c=>c.id));
 
 function buildCategoriesSection() {
@@ -1875,18 +1874,26 @@ function renderCatEmojiGrid() {
   grid.querySelectorAll('.emoji-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       catIconSelected = btn.dataset.e;
-      $('cat-icon-display').textContent = catIconSelected;
+      $('cat-icon-emoji').textContent = catIconSelected;
       grid.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.dataset.e===catIconSelected));
+      grid.style.display = 'none';
     });
   });
 }
+
+window.toggleEmojiGrid = function() {
+  const grid = $('cat-emoji-grid');
+  const open = grid.style.display === 'none';
+  grid.style.display = open ? 'grid' : 'none';
+};
 
 window.openCatModal = function(catId) {
   catEditId = catId;
   const cat = catId ? activeCats.find(c=>c.id===catId) : null;
   $('cat-modal-title').textContent = cat ? 'Edit Category' : 'New Category';
   catIconSelected = cat?.icon || EMOJI_LIST[0];
-  $('cat-icon-display').textContent = catIconSelected;
+  $('cat-icon-emoji').textContent = catIconSelected;
+  $('cat-emoji-grid').style.display = 'none';
   $('cat-label-input').value = cat?.label || '';
   catModalColor = cat?.color || CAT_PALETTE[0];
   renderCatColorPicker();
@@ -1926,7 +1933,7 @@ async function saveCatModal() {
   buildCatBudgetInputs();
   buildCategoriesSection();
   closeCatModal();
-  showToast('✓ Saved!');
+  showToast('âœ“ Saved!');
 }
 
 window.deleteCat = async function(catId) {
@@ -1945,9 +1952,9 @@ window.deleteCat = async function(catId) {
   showToast('Category deleted');
 };
 
-// ─── Export CSV ───
+// â”€â”€â”€ Export CSV â”€â”€â”€
 window.exportCSV=async function() {
-  showToast('Preparing export…');
+  showToast('Preparing exportâ€¦');
   const y=new Date().getFullYear(), allData=[];
   for(let yr=y-1;yr<=y;yr++) for(let mo=1;mo<=12;mo++){
     const d=await loadMonth(yr,mo);
@@ -1966,10 +1973,10 @@ window.exportCSV=async function() {
   const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`expenses_${y}.csv`; a.click(); showToast('✓ Exported!');
+  a.download=`expenses_${y}.csv`; a.click(); showToast('âœ“ Exported!');
 };
 
-// ─── Demo Mode ───
+// â”€â”€â”€ Demo Mode â”€â”€â”€
 async function startDemo() {
   const id1='du1', id2='du2', id3='du3';
   familyId = 'DEMO' + Math.random().toString(36).slice(2,6).toUpperCase();
@@ -2054,7 +2061,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '11:58';
+const _THIS_VERSION = '12:03';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())
@@ -2065,7 +2072,7 @@ fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
 let _updateChecked = false;
 function checkUpdateOnGesture() {
   if (_updateChecked) return false;
-  if (_latestVersion === null) return false; // fetch still in progress — check on next tap
+  if (_latestVersion === null) return false; // fetch still in progress â€” check on next tap
   _updateChecked = true;
   if (_latestVersion !== _THIS_VERSION) {
     const fid = localStorage.getItem('familyId');
