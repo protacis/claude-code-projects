@@ -4,15 +4,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Three standalone single-file HTML games/apps. No build step, no dependencies, no package manager. Open any file directly in a browser to run it.
+Multiple standalone projects, each in its own subfolder. No build step for the HTML apps — open any `.html` file directly in a browser.
 
 To serve locally (useful for iPhone testing on the same Wi-Fi):
 ```
 python -m http.server 8080
 ```
-Then open `http://<local-ip>:8080/<file>.html` on the device.
+Then open `http://<local-ip>:8080/<subfolder>/<file>.html` on the device.
 
-## Files
+## Folder structure
+
+| Folder | What it is |
+|---|---|
+| `expenses/` | Expenses tracker PWA — deployed to Firebase Hosting (`expenses-558cd`) |
+| `checkin/` | WorkCheck check-in app PWA — deployed to Firebase Hosting (`checkinaura-4cde2`) |
+| `games/` | Mini HTML apps: Tic Tac Toe, Snake, Weekly Meal Planner |
+| `gym/` | Gym tracker app |
+| `laser/` | Laser project app |
+| `inventor-launcher/` | Inventor 2026 & AutoCAD launcher (PowerShell/HTA) + InventorParamsAddin (C#) |
+| `3d Models/` | Inventor .ipt part files (Pulley assembly) |
+
+## expenses/ — Expenses tracker PWA
+
+Deployed to Firebase Hosting. Key files:
+- `expenses.html` — single-file app, all logic inside
+- `sw.js`, `manifest.json`, `icon.svg` — PWA support
+- `version.json` — current version string
+- `CHANGELOG.md` — change log (update on every deploy)
+- `deploy.js` — deploys via Firebase Hosting REST API (no Firebase CLI needed)
+- `firebase.json`, `.firebaserc` — Firebase CLI config (backup deploy method)
+
+**Deploy:** `node expenses/deploy.js` from repo root, or `cd expenses && node deploy.js`
+
+**Version & changelog:** bump `version.json` and add entry to `CHANGELOG.md` on every deploy. Also update the in-app version string and deploy timestamp (Greece time, UTC+3) in the Home tab + Settings.
+
+## checkin/ — WorkCheck PWA
+
+Deployed to Firebase Hosting. Key files:
+- `checkin.html` — single-file app (multi-tenant, Firebase Realtime Database)
+- `checkin-sw.js`, `checkin-manifest.json`, `checkin-icon.svg` — PWA support
+- `deploy-checkin.js` — deploys via Firebase Hosting REST API
+- `checkinaura-4cde2-firebase-adminsdk-fbsvc-689b7e655d.json` — service account key
+
+**Deploy:** `node checkin/deploy-checkin.js` from repo root, or `cd checkin && node deploy-checkin.js`
+
+## games/ — Mini apps
 
 | File | What it is |
 |---|---|
@@ -20,7 +56,7 @@ Then open `http://<local-ip>:8080/<file>.html` on the device.
 | `snake.html` | Snake game, Nokia 3310 LCD aesthetic, mobile arrow-button controls |
 | `meals.html` | Weekly meal planner — the most complex file |
 
-## meals.html architecture
+### meals.html architecture
 
 All logic is in a single `<script>` block at the bottom. No framework.
 
@@ -50,12 +86,16 @@ state[i] = { name, date, meals: { breakfast: <meal obj>, lunch: <meal obj>, dinn
 
 **`refreshMacros(di)`**: updates the macro summary row on a day card without re-rendering the whole card. Must be called after any meal change (dropdown, shuffle button, modal shuffle).
 
-## Design tokens (CSS variables in `:root`)
+### Design tokens (CSS variables in `:root`)
 
 ```
 --bg, --card, --accent (#4c6e5d), --accent2, --text, --sub, --border, --tag-bg, --tag-text
 --p-color (protein teal), --c-color (carbs amber), --f-color (fat coral)
 ```
+
+## inventor-launcher/
+
+PowerShell/HTA launcher for Inventor 2026 & AutoCAD. The `InventorParamsAddin/` subfolder is a C# add-in that exposes a parameters viewer panel via the Inventor COM API.
 
 ## Git workflow
 
@@ -72,8 +112,8 @@ Commit rules:
 - Message format: `<verb> <what>` e.g. `Fix macro totals not updating on dropdown change`
 - Push to `origin/master` after every commit (remote: https://github.com/protacis/claude-code-projects)
 
-## Key constraints
+## Key constraints (HTML apps)
 
-- **No persistence** — state is in-memory only; refreshing resets to random meals. `localStorage` has not been added yet.
+- **No persistence** — state is in-memory only (except expenses.html which uses localStorage). Refreshing resets to defaults unless persistence is explicitly implemented.
 - **All fonts** load from Google Fonts (`DM Serif Display` + `DM Sans`). Use `<link rel="preconnect">` + `<link rel="stylesheet">` — not `@import` inside `<style>`, which blocks Safari rendering.
-- **Mobile layout**: the weekly grid scrolls horizontally (`overflow-x: auto`, `scroll-snap-type: x proximity`); each card is `minmax(260px, 1fr)`. The tab bar uses `env(safe-area-inset-bottom)` for iPhone home-bar clearance.
+- **Mobile layout** in meals.html: the weekly grid scrolls horizontally (`overflow-x: auto`, `scroll-snap-type: x proximity`); each card is `minmax(260px, 1fr)`. The tab bar uses `env(safe-area-inset-bottom)` for iPhone home-bar clearance.

@@ -2,11 +2,7 @@
   "hosting": {
     "public": ".",
     "ignore": [
-      "firebase.json", ".firebaserc", ".git/**",
-      "*.ps1", "*.bat", "deploy.js",
-      "3d Models/**", "gym_nostyle.html",
-      "tictactoe.html", "snake.html", "meals.html",
-      "CHANGELOG.md", "CLAUDE.md", "memory/**"
+      "firebase.json", ".firebaserc", "deploy.js"
     ],
     "headers": [
       { "source": "/expenses.html", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },
