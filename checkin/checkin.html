@@ -276,6 +276,7 @@
       <div class="card-title">Today's Log</div>
       <div id="e-log"><div class="empty">No activity today</div></div>
     </div>
+    <div style="text-align:center;font-size:11px;color:var(--sub);padding-top:4px">WorkCheck · v · 13:06</div>
   </div>
 </div>
 
@@ -339,6 +340,10 @@
         <div class="card-title">Team</div>
         <div class="set-row"><div class="set-lbl">Total Employees</div><div class="set-val" id="emp-count">—</div></div>
       </div>
+      <div class="card">
+        <div class="card-title">App</div>
+        <div class="set-row"><div><div class="set-lbl">WorkCheck</div><div class="set-sub">Deployed</div></div><div class="set-val">v · 13:06</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -347,6 +352,18 @@
 <div id="modal"><div class="modal-handle"></div><div id="modal-body"></div></div>
 
 <script>
+// ══════════════════════════════════════════════
+//  VERSION
+// ══════════════════════════════════════════════
+const _THIS_VERSION = '13:06';
+(async () => {
+  try {
+    const r = await fetch('checkin-version.json?_=' + Date.now());
+    const j = await r.json();
+    if (j.v && j.v !== _THIS_VERSION) location.reload(true);
+  } catch {}
+})();
+
 // ══════════════════════════════════════════════
 //  FIREBASE CONFIG  ← paste your config here
 // ══════════════════════════════════════════════
