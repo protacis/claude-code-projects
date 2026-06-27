@@ -277,6 +277,9 @@
       <option value="AED">🇦🇪 AED — Dirham</option>
       <option value="EUR">🇪🇺 EUR — Euro</option>
       <option value="USD">🇺🇸 USD — Dollar</option>
+      <option value="GBP">🇬🇧 GBP — Pound</option>
+      <option value="CHF">🇨🇭 CHF — Franc</option>
+      <option value="SAR">🇸🇦 SAR — Riyal</option>
     </select>
   </div>
   <div class="input-group"><label>Monthly budget (primary currency)</label><input type="number" id="setup-budget" placeholder="e.g. 8000" inputmode="numeric" min="0"></div>
@@ -332,10 +335,13 @@
       <span class="amount-symbol" id="amount-symbol">AED</span><input type="text" id="amount-input" placeholder="" inputmode="decimal">
     </div>
     <div class="section-label">Currency</div>
-    <div class="toggle-row" id="currency-toggle">
-      <button class="toggle-btn active" data-cur="AED">🇦🇪 AED</button>
-      <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
-      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+    <div class="who-chips" id="currency-toggle">
+      <button class="who-chip active" data-cur="AED">🇦🇪 AED</button>
+      <button class="who-chip" data-cur="EUR">🇪🇺 EUR</button>
+      <button class="who-chip" data-cur="USD">🇺🇸 USD</button>
+      <button class="who-chip" data-cur="GBP">🇬🇧 GBP</button>
+      <button class="who-chip" data-cur="CHF">🇨🇭 CHF</button>
+      <button class="who-chip" data-cur="SAR">🇸🇦 SAR</button>
     </div>
     <div class="section-label">Category</div>
     <div class="cat-grid" id="cat-grid"></div>
@@ -363,9 +369,10 @@
       <button class="month-nav-btn" id="btn-next-month">›</button>
     </div>
     <div class="budget-card" id="budget-card"></div>
-    <div style="padding:0 0 10px 0">
+    <div style="padding:0 0 8px 0">
       <input id="list-search" type="search" placeholder="Search expenses…" style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:inherit;outline:none" oninput="renderListFiltered()">
     </div>
+    <div id="list-filters" style="margin-bottom:10px"></div>
     <div id="expense-list"></div>
   </div>
 
@@ -376,16 +383,23 @@
       <div class="month-nav-title" id="month-title-s"></div>
       <button class="month-nav-btn" id="btn-next-month-s">›</button>
     </div>
+    <div class="toggle-row" id="stats-mode-toggle" style="margin-bottom:8px">
+      <button class="toggle-btn active" data-mode="month">Month</button>
+      <button class="toggle-btn" data-mode="year">Year</button>
+    </div>
     <div class="section-label" style="margin-top:4px">Report currency</div>
-    <div class="toggle-row" id="report-cur-toggle" style="margin-bottom:8px">
-      <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
-      <button class="toggle-btn active" data-cur="EUR">🇪🇺 EUR</button>
-      <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+    <div class="who-chips" id="report-cur-toggle" style="margin-bottom:8px">
+      <button class="who-chip" data-cur="AED">🇦🇪 AED</button>
+      <button class="who-chip active" data-cur="EUR">🇪🇺 EUR</button>
+      <button class="who-chip" data-cur="USD">🇺🇸 USD</button>
+      <button class="who-chip" data-cur="GBP">🇬🇧 GBP</button>
+      <button class="who-chip" data-cur="CHF">🇨🇭 CHF</button>
+      <button class="who-chip" data-cur="SAR">🇸🇦 SAR</button>
     </div>
     <div class="fx-note" id="fx-note" style="margin-bottom:16px"></div>
     <div class="stats-card"><h3 id="stats-pie-title">By category</h3><div class="chart-wrap"><canvas id="pie-chart"></canvas></div></div>
     <div class="stats-card"><h3>Category breakdown</h3><div id="cat-breakdown"></div></div>
-    <div class="stats-card"><h3>Monthly trend (6 months)</h3><div class="chart-wrap"><canvas id="trends-chart"></canvas></div></div>
+    <div class="stats-card"><h3 id="trends-title">Monthly trend (6 months)</h3><div class="chart-wrap"><canvas id="trends-chart"></canvas></div></div>
     <div class="stats-card"><h3>By person</h3><div id="person-breakdown"></div></div>
   </div>
 
@@ -440,7 +454,7 @@
           <span class="budget-input-label" style="font-size:15px;font-weight:600">Monthly total</span>
           <input type="text" id="total-budget-input" class="budget-input-field" placeholder="—" inputmode="decimal" style="width:100px">
           <select id="total-budget-cur" class="budget-cur-select">
-            <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option>
+            <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="CHF">CHF</option><option value="SAR">SAR</option>
           </select>
         </div>
         <p style="font-size:12px;color:var(--sub);margin-bottom:16px;padding-top:4px">Per category:</p>
@@ -480,7 +494,7 @@
         <button class="btn-primary" onclick="exportCSV()" style="margin-top:0">Export to CSV</button>
         <button class="btn-primary" onclick="leaveFamily()" style="margin-top:10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger)">Leave / Switch family</button>
         <button class="btn-primary" onclick="checkForUpdates()" style="margin-top:10px;background:transparent;color:var(--accent);border:1.5px solid var(--accent)">🔄 Check for updates</button>
-        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.2.0</strong> · deployed <strong>2026-06-27 12:10</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
+        <p style="font-size:11px;color:var(--sub);margin-top:24px;text-align:center">Expenses App <strong>v2.3.0</strong> · deployed <strong>2026-06-27 12:34</strong> · <a href="https://github.com/protacis/claude-code-projects/blob/master/CHANGELOG.md" target="_blank" style="color:var(--accent);text-decoration:none">Changelog</a></p>
       </div></div>
     </div>
     <!-- About -->
@@ -540,10 +554,13 @@
       onfocus="this.select()">
   </div>
   <div class="section-label">Currency</div>
-  <div class="toggle-row" id="edit-currency-toggle" style="margin-bottom:16px">
-    <button class="toggle-btn" data-cur="AED">🇦🇪 AED</button>
-    <button class="toggle-btn" data-cur="EUR">🇪🇺 EUR</button>
-    <button class="toggle-btn" data-cur="USD">🇺🇸 USD</button>
+  <div class="who-chips" id="edit-currency-toggle" style="margin-bottom:16px">
+    <button class="who-chip" data-cur="AED">🇦🇪 AED</button>
+    <button class="who-chip" data-cur="EUR">🇪🇺 EUR</button>
+    <button class="who-chip" data-cur="USD">🇺🇸 USD</button>
+    <button class="who-chip" data-cur="GBP">🇬🇧 GBP</button>
+    <button class="who-chip" data-cur="CHF">🇨🇭 CHF</button>
+    <button class="who-chip" data-cur="SAR">🇸🇦 SAR</button>
   </div>
   <div class="section-label">Category</div>
   <div class="cat-grid" id="edit-cat-grid" style="margin-bottom:16px"></div>
@@ -602,7 +619,7 @@
     <div style="flex:2"><input type="text" id="rec-amount" placeholder="0" inputmode="decimal" class="budget-input-field" style="width:100%;padding:14px 12px;font-size:16px"></div>
     <div style="flex:1">
       <select id="rec-currency" class="budget-cur-select" style="width:100%;padding:14px 8px;font-size:14px;border-radius:12px;border:1.5px solid var(--border)">
-        <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option>
+        <option value="AED">AED</option><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="CHF">CHF</option><option value="SAR">SAR</option>
       </select>
     </div>
   </div>
@@ -644,8 +661,8 @@ const firebaseConfig = {
 };
 
 // ─── FX ───
-const CURRENCIES = { AED:{symbol:'AED',flag:'🇦🇪'}, EUR:{symbol:'€',flag:'🇪🇺'}, USD:{symbol:'$',flag:'🇺🇸'} };
-let fxToEur = { AED:0.2519, EUR:1, USD:0.9259 };
+const CURRENCIES = { AED:{symbol:'AED',flag:'🇦🇪'}, EUR:{symbol:'€',flag:'🇪🇺'}, USD:{symbol:'$',flag:'🇺🇸'}, GBP:{symbol:'£',flag:'🇬🇧'}, CHF:{symbol:'CHF',flag:'🇨🇭'}, SAR:{symbol:'SAR',flag:'🇸🇦'} };
+let fxToEur = { AED:0.2519, EUR:1, USD:0.9259, GBP:1.17, CHF:1.05, SAR:0.2469 };
 let fxFetched = false, fxFetchedAt = null;
 
 async function fetchRates() {
@@ -653,7 +670,7 @@ async function fetchRates() {
     const r = await fetch('https://open.er-api.com/v6/latest/EUR');
     const d = await r.json();
     if (d.result !== 'success') throw 0;
-    fxToEur = { EUR:1, AED:1/d.rates.AED, USD:1/d.rates.USD };
+    fxToEur = { EUR:1, AED:1/d.rates.AED, USD:1/d.rates.USD, GBP:1/d.rates.GBP, CHF:1/d.rates.CHF, SAR:1/d.rates.SAR };
     fxFetched = true; fxFetchedAt = new Date();
   } catch(_) {}
 }
@@ -708,7 +725,7 @@ let db, config;
 let users = [];
 let activeUserId = null;
 let currentMonth = new Date().getMonth()+1, currentYear = new Date().getFullYear();
-let statsMonth = currentMonth, statsYear = currentYear;
+let statsMonth = currentMonth, statsYear = currentYear, statsMode = 'month';
 let listExpenses = {};
 let recurringList = {};
 let pendingRecurring = [];
@@ -718,6 +735,7 @@ let editCat = 'food', editCur = 'AED', editWho = null;
 let recCat = 'food', recWho = null;
 let editState = null, recEditId = null;
 let pieChart = null, trendsChart = null;
+let filterCat = null, filterUser = null;
 let pinEntry = '';
 let reportCur = 'EUR';
 let notifications = [];
@@ -936,7 +954,7 @@ function launchApp() {
   buildCatGrid('rec-cat-grid', false, true);
   $('date-input').value = today();
 
-  document.querySelectorAll('#currency-toggle .toggle-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===selectedCur));
+  document.querySelectorAll('#currency-toggle .who-chip').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===selectedCur));
   $('amount-symbol').textContent = CURRENCIES[selectedCur].symbol;
 
   setupCurrencyToggle();
@@ -951,8 +969,15 @@ function launchApp() {
   $('btn-next-month-s').addEventListener('click',()=>changeStatsMonth(+1));
 
   reportCur = config.defaultCurrency||'EUR';
-  document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===reportCur));
+  document.querySelectorAll('#report-cur-toggle .who-chip').forEach(btn=>btn.classList.toggle('active',btn.dataset.cur===reportCur));
   setupReportCurrencyToggle();
+  document.querySelectorAll('#stats-mode-toggle .toggle-btn').forEach(btn=>
+    btn.addEventListener('click',()=>{
+      statsMode=btn.dataset.mode;
+      document.querySelectorAll('#stats-mode-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStats(statsYear,statsMonth);
+    }));
 
   setupEditModal();
   setupSettingsAccordion();
@@ -1000,19 +1025,19 @@ function buildCatGrid(gridId, isEdit=false, isRec=false) {
 
 // ─── Currency Toggle ───
 function setupCurrencyToggle() {
-  document.querySelectorAll('#currency-toggle .toggle-btn').forEach(btn=>
+  document.querySelectorAll('#currency-toggle .who-chip').forEach(btn=>
     btn.addEventListener('click',()=>{
       selectedCur=btn.dataset.cur;
-      document.querySelectorAll('#currency-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('#currency-toggle .who-chip').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       $('amount-symbol').textContent=CURRENCIES[selectedCur].symbol;
     }));
 }
 function setupReportCurrencyToggle() {
-  document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(btn=>
+  document.querySelectorAll('#report-cur-toggle .who-chip').forEach(btn=>
     btn.addEventListener('click',()=>{
       reportCur=btn.dataset.cur;
-      document.querySelectorAll('#report-cur-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('#report-cur-toggle .who-chip').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       renderStats(statsYear,statsMonth);
     }));
@@ -1152,7 +1177,7 @@ function switchView(name) {
   $(`view-${name}`).classList.add('active');
   document.querySelector(`.tab-btn[data-view="${name}"]`).classList.add('active');
   if(name==='home')  renderHome();
-  if(name==='list')  renderList(currentYear,currentMonth,listExpenses);
+  if(name==='list')  { buildListFilters(); renderListFiltered(); }
   if(name==='stats') renderStats(statsYear,statsMonth);
   if(name==='settings') { buildUsersSection(); buildRecurringSection(); buildCategoriesSection(); }
 }
@@ -1168,7 +1193,7 @@ let unsubscribe=null;
 function subscribeCurrentMonth() {
   if(unsubscribe) unsubscribe();
   const ref=fref(`expenses/${currentYear}/${currentMonth}`);
-  const handler=snap=>{ listExpenses=snap.val()||{}; if($('view-list').classList.contains('active')) renderList(currentYear,currentMonth,listExpenses); if($('view-home').classList.contains('active')) renderHome(); };
+  const handler=snap=>{ listExpenses=snap.val()||{}; if($('view-list').classList.contains('active')){ buildListFilters(); renderListFiltered(); } if($('view-home').classList.contains('active')) renderHome(); };
   ref.on('value',handler);
   unsubscribe=()=>ref.off('value',handler);
 }
@@ -1190,9 +1215,8 @@ async function changeListMonth(dir) {
   renderList(currentYear,currentMonth,listExpenses);
 }
 async function changeStatsMonth(dir) {
-  statsMonth+=dir;
-  if(statsMonth>12){statsMonth=1;statsYear++;}
-  if(statsMonth<1){statsMonth=12;statsYear--;}
+  if(statsMode==='year'){ statsYear+=dir; }
+  else { statsMonth+=dir; if(statsMonth>12){statsMonth=1;statsYear++;} if(statsMonth<1){statsMonth=12;statsYear--;} }
   renderStats(statsYear,statsMonth);
 }
 
@@ -1271,8 +1295,14 @@ async function renderHome() {
       ${pendingRecurring.map(r=>`<div class="cat-stat-row"><span class="cat-stat-name">${catMap[r.cat]?.icon||''} ${escHtml(r.desc)}</span><span class="cat-stat-amount">${fmt(r.amount,r.currency||primCur)}</span></div>`).join('')}
       <button class="btn-primary" onclick="openNotifications()" style="margin-top:8px;font-size:14px">Review →</button>
     </div>`:''}
+    <div style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:8px">Quick add</div>
+      <div class="who-chips" id="quick-add-chips">
+        ${activeCats.slice(0,6).map(cat=>`<button class="who-chip" onclick="quickAdd('${cat.id}')" style="font-size:18px">${cat.icon}</button>`).join('')}
+      </div>
+    </div>
     <button class="btn-primary" onclick="switchView('add')" style="font-size:17px">＋ Add Expense</button>
-    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.2.0 · 2026-06-27 12:10</p>
+    <p style="font-size:11px;color:var(--sub);text-align:center;margin-top:18px">v2.3.0 · 2026-06-27 12:34</p>
   `;
 
   updateNotifBadge();
@@ -1410,6 +1440,12 @@ window.skipPendingRecurring = async function(recId, idx) {
   renderHome();
 };
 
+window.quickAdd = function(catId) {
+  selectedCat = catId;
+  switchView('add');
+  buildCatGrid('cat-grid', false);
+};
+
 // ─── Save Expense ───
 async function saveExpense() {
   const amount=parseAmt($('amount-input').value);
@@ -1440,10 +1476,10 @@ async function saveExpense() {
 
 // ─── Edit Modal ───
 function setupEditModal() {
-  document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(btn=>
+  document.querySelectorAll('#edit-currency-toggle .who-chip').forEach(btn=>
     btn.addEventListener('click',()=>{
       editCur=btn.dataset.cur;
-      document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('#edit-currency-toggle .who-chip').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       $('edit-amount-symbol').textContent=CURRENCIES[editCur].symbol;
     }));
@@ -1459,7 +1495,7 @@ window.openEditModal=function(year,month,id) {
   editCur=exp.currency||config.defaultCurrency||'AED';
   $('edit-amount').value=exp.amount;
   $('edit-amount-symbol').textContent=CURRENCIES[editCur].symbol;
-  document.querySelectorAll('#edit-currency-toggle .toggle-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===editCur));
+  document.querySelectorAll('#edit-currency-toggle .who-chip').forEach(b=>b.classList.toggle('active',b.dataset.cur===editCur));
   editCat=exp.cat||'other';
   buildCatGrid('edit-cat-grid',true);
   if(exp.split){
@@ -1502,17 +1538,27 @@ window.deleteExpense=async function(year,month,id) {
   await fref(`expenses/${year}/${month}/${id}`).remove();
 };
 
+// ─── List Filters ───
+function buildListFilters() {
+  const c=$('list-filters'); if(!c) return;
+  const catChips=[{id:null,label:'All',icon:'☰'},...activeCats].map(cat=>`
+    <button class="who-chip${filterCat===cat.id?' active':''}" onclick="setFilterCat(${cat.id===null?'null':`'${cat.id}'`})">${cat.id?cat.icon+' ':'' }${cat.label}</button>`).join('');
+  const userChips=[{id:null,name:'All'},...activeUsers()].map(u=>`
+    <button class="who-chip${filterUser===u.id?' active':''}" onclick="setFilterUser(${u.id===null?'null':`'${u.id}'`})">${escHtml(u.name)}</button>`).join('');
+  c.innerHTML=`<div class="who-chips" style="margin-bottom:6px">${catChips}</div><div class="who-chips">${userChips}</div>`;
+}
+window.setFilterCat=function(id){filterCat=id;buildListFilters();renderListFiltered();};
+window.setFilterUser=function(id){filterUser=id;buildListFilters();renderListFiltered();};
+
 // ─── Render List ───
 function renderListFiltered() {
   const q=($('list-search')?.value||'').trim().toLowerCase();
-  if(!q){ renderList(currentYear,currentMonth,listExpenses); return; }
-  const filtered=Object.fromEntries(
-    Object.entries(listExpenses).filter(([,e])=>
-      (e.desc||'').toLowerCase().includes(q) ||
-      (catMap[e.cat]?.label||'').toLowerCase().includes(q)
-    )
-  );
-  renderList(currentYear,currentMonth,filtered,true);
+  let entries=Object.entries(listExpenses);
+  if(q) entries=entries.filter(([,e])=>(e.desc||'').toLowerCase().includes(q)||(catMap[e.cat]?.label||'').toLowerCase().includes(q));
+  if(filterCat) entries=entries.filter(([,e])=>e.cat===filterCat);
+  if(filterUser) entries=entries.filter(([,e])=>e.split?e.split.some(s=>s.userId===filterUser):resolveUserId(e.who)===filterUser);
+  const filtered=Object.fromEntries(entries);
+  renderList(currentYear,currentMonth,filtered,!!(q||filterCat||filterUser));
 }
 function renderList(year,month,data,isFiltered=false) {
   $('month-title').textContent=`${MONTHS[month-1]} ${year}`;
@@ -1559,6 +1605,7 @@ function renderList(year,month,data,isFiltered=false) {
 
 // ─── Stats ───
 async function renderStats(year,month) {
+  if(statsMode==='year') { await renderYearStats(year); return; }
   $('month-title-s').textContent=`${MONTHS[month-1]} ${year}`;
   const data=(year===currentYear&&month===currentMonth)?listExpenses:await loadMonth(year,month);
   const primCur=config.defaultCurrency||'AED', items=Object.values(data);
@@ -1601,7 +1648,62 @@ async function renderStats(year,month) {
   renderTrends(year,month);
 }
 
+async function renderYearStats(year) {
+  const now=new Date(), curY=now.getFullYear(), curM=now.getMonth()+1;
+  const maxMonth = year===curY ? curM : 12;
+  $('month-title-s').textContent=`${year}`;
+  const months=[]; for(let m=1;m<=maxMonth;m++) months.push(m);
+  const primCur=config.defaultCurrency||'AED';
+  const monthDatasets=await Promise.all(months.map(m=>{
+    if(year===currentYear&&m===currentMonth) return Promise.resolve(Object.values(listExpenses));
+    return loadMonth(year,m).then(d=>Object.values(d));
+  }));
+  const allItems=[];
+  monthDatasets.forEach(items=>allItems.push(...items));
+
+  const totalEur=allItems.reduce((s,e)=>{
+    if(e.split) return s+e.split.reduce((ss,sp)=>ss+toEur(sp.amount,e.currency||primCur),0);
+    return s+toEur(e.amount,e.currency||primCur);
+  },0);
+  const byCat={};
+  allItems.forEach(e=>{const eur=toEur(e.amount,e.currency||primCur);byCat[e.cat]=(byCat[e.cat]||0)+eur;});
+  const catEntries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  $('stats-pie-title').textContent=`By category — all in ${reportCur} (${year})`;
+  if(pieChart){pieChart.destroy();pieChart=null;}
+  if(catEntries.length){
+    pieChart=new Chart($('pie-chart'),{type:'doughnut',data:{labels:catEntries.map(([id])=>catMap[id]?.label||id),datasets:[{data:catEntries.map(([,v])=>v),backgroundColor:catEntries.map(([id])=>catMap[id]?.color||'#888'),borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',layout:{padding:16},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtReport(ctx.raw)}  (${totalEur?Math.round(ctx.raw/totalEur*100):0}%)`}},datalabels:{display:ctx=>totalEur>0&&ctx.dataset.data[ctx.dataIndex]/totalEur>0.05,formatter:(value,ctx)=>{const id=catEntries[ctx.dataIndex]?.[0];return`${catMap[id]?.icon||''}\n${Math.round(value/totalEur*100)}%`;},color:'#fff',font:{size:10,weight:'700'},textAlign:'center'}}}});
+  }
+  const noData='<div style="color:var(--sub);padding:16px 0;text-align:center;font-size:14px">No expenses this year</div>';
+  $('cat-breakdown').innerHTML=catEntries.length?catEntries.map(([id,eur])=>{
+    const cat=catMap[id]||catMap.other;
+    const pctOfTotal=totalEur?Math.round(eur/totalEur*100):0;
+    return`<div class="cat-stat-group"><div class="cat-stat-row"><div class="cat-stat-dot" style="background:${cat.color}"></div><span class="cat-stat-name">${cat.icon} ${cat.label}</span><span class="cat-stat-amount">${fmtReport(eur)}</span><span class="cat-stat-pct">${pctOfTotal}%</span></div></div>`;
+  }).join(''):noData;
+  const byPerson={};
+  allItems.forEach(e=>{
+    if(e.split) e.split.forEach(s=>{byPerson[s.userId]=(byPerson[s.userId]||0)+toEur(s.amount,e.currency||primCur);});
+    else{const uid=resolveUserId(e.who);if(uid)byPerson[uid]=(byPerson[uid]||0)+toEur(e.amount,e.currency||primCur);}
+  });
+  $('person-breakdown').innerHTML=allItems.length?users.map(u=>{
+    const eur=byPerson[u.id]||0;
+    return`<div class="cat-stat-row"><div class="cat-stat-dot" style="background:${userColor(u.id)}"></div><span class="cat-stat-name">${escHtml(u.name)}</span><span class="cat-stat-amount">${fmtReport(eur)}</span><span class="cat-stat-pct">${totalEur?Math.round(eur/totalEur*100):0}%</span></div>`;
+  }).join(''):noData;
+  const rateAed=(1/fxToEur.AED).toFixed(2), rateUsd=(1/fxToEur.USD).toFixed(4);
+  const fxLabel=fxFetched?`live · updated at ${fmtFxTime()}`:'offline fallback';
+  $('fx-note').textContent=`Rates (${fxLabel}): 1 EUR = AED ${rateAed} / USD ${rateUsd}`;
+  if($('trends-title')) $('trends-title').textContent=`Monthly trend (${year})`;
+  if(trendsChart){trendsChart.destroy();trendsChart=null;}
+  const labels=months.map(m=>MONTHS[m-1].slice(0,3));
+  const totals=monthDatasets.map(items=>eurToReport(items.reduce((s,e)=>{
+    if(e.split) return s+e.split.reduce((ss,sp)=>ss+toEur(sp.amount,e.currency||primCur),0);
+    return s+toEur(e.amount,e.currency||primCur);
+  },0)));
+  const subColor=cssVar('--sub')||'#94a3b8', borderColor=cssVar('--border')||'#334155';
+  trendsChart=new Chart($('trends-chart'),{type:'bar',data:{labels,datasets:[{data:totals,backgroundColor:months.map(m=>m===curM&&year===curY?'rgba(99,102,241,.85)':'rgba(99,102,241,.3)'),borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.raw,reportCur)}`}}},scales:{x:{grid:{display:false},ticks:{color:subColor,font:{size:11}}},y:{grid:{color:borderColor},ticks:{color:subColor,font:{size:11},callback:v=>v>=1000?(v/1000).toFixed(1)+'k':Math.round(v)}}}}});
+}
+
 async function renderTrends(year,month) {
+  if($('trends-title')) $('trends-title').textContent='Monthly trend (6 months)';
   const months=[]; let y=year,m=month;
   for(let i=0;i<6;i++){months.unshift({year:y,month:m});m--;if(m<1){m=12;y--;}}
   const primCur=config.defaultCurrency||'AED';
@@ -1743,6 +1845,9 @@ function buildCatBudgetInputs() {
         <option value="AED"${cur==='AED'?' selected':''}>AED</option>
         <option value="EUR"${cur==='EUR'?' selected':''}>EUR</option>
         <option value="USD"${cur==='USD'?' selected':''}>USD</option>
+        <option value="GBP"${cur==='GBP'?' selected':''}>GBP</option>
+        <option value="CHF"${cur==='CHF'?' selected':''}>CHF</option>
+        <option value="SAR"${cur==='SAR'?' selected':''}>SAR</option>
       </select>`;
     c.appendChild(row);
   });
@@ -1848,10 +1953,12 @@ const DEFAULT_CAT_IDS = new Set(DEFAULT_CATS.map(c=>c.id));
 
 function buildCategoriesSection() {
   const c=$('acc-categories-content'); if(!c) return;
-  c.innerHTML = activeCats.map(cat=>`
+  c.innerHTML = activeCats.map((cat,i)=>`
     <div class="budget-input-row">
       <div class="budget-input-icon" style="background:${cat.color}22">${cat.icon}</div>
       <span class="budget-input-label">${escHtml(cat.label)}</span>
+      <button class="user-action-btn" onclick="moveCat('${cat.id}',-1)" ${i===0?'disabled':''} style="${i===0?'opacity:.3':''}">↑</button>
+      <button class="user-action-btn" onclick="moveCat('${cat.id}',1)" ${i===activeCats.length-1?'disabled':''} style="${i===activeCats.length-1?'opacity:.3':''}">↓</button>
       <button class="user-action-btn" onclick="openCatModal('${cat.id}')">Edit</button>
       ${!DEFAULT_CAT_IDS.has(cat.id)?`<button class="user-action-btn danger" onclick="deleteCat('${cat.id}')">Delete</button>`:''}
     </div>`).join('') +
@@ -1934,6 +2041,19 @@ async function saveCatModal() {
   closeCatModal();
   showToast('✓ Saved!');
 }
+
+window.moveCat = async function(catId, dir) {
+  const i = activeCats.findIndex(c=>c.id===catId);
+  const j = i+dir;
+  if(j<0||j>=activeCats.length) return;
+  [activeCats[i],activeCats[j]]=[activeCats[j],activeCats[i]];
+  catMap = Object.fromEntries(activeCats.map(c=>[c.id,c]));
+  await fref('config/categories').set(activeCats);
+  buildCatGrid('cat-grid',false);
+  buildCatGrid('edit-cat-grid',true);
+  buildCatGrid('rec-cat-grid',false,true);
+  buildCategoriesSection();
+};
 
 window.deleteCat = async function(catId) {
   if(!confirm('Delete this category? Existing expenses will show as "Other".')) return;
@@ -2060,7 +2180,7 @@ async function startDemo() {
   if(r){ localStorage.removeItem('_rejoin'); localStorage.setItem('familyId',r); }
 })();
 
-const _THIS_VERSION = '12:10';
+const _THIS_VERSION = '12:34';
 let _latestVersion = null;
 fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
   .then(r => r.json())

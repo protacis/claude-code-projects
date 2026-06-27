@@ -5,6 +5,17 @@ Format: `[vX.Y.Z] YYYY-MM-DD — Description`
 
 ---
 
+## [v2.3.0] 2026-06-27 — Filters, yearly stats, quick-add, category reorder, more currencies
+
+### New features
+- **List filters** — category chips + user chips below search bar; filter expenses by category and/or person
+- **Yearly stats** — Month/Year toggle in Stats; Year mode aggregates all months Jan–today with pie chart, category breakdown, by-person, and monthly bar chart
+- **Quick-add from Home** — first 6 categories shown as tappable emoji chips; tap to jump to Add tab with category pre-selected
+- **Category reordering** — ↑↓ arrows in Settings → Categories; reorder persists to Firebase
+- **More currencies** — GBP, CHF, SAR added to all currency pickers (Add, Edit, Stats, Setup, Budget, Recurring)
+
+---
+
 ## [v2.2.0] 2026-06-27 — Custom categories
 
 ### New features
