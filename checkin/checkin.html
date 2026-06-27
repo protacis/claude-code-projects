@@ -458,22 +458,24 @@ function setBtnLoading(id,on) {
   else{b.innerHTML=b._orig||b.innerHTML;b.disabled=false;}
 }
 
-function getPos(highAccuracy=true) {
+function getPos(highAccuracy=false, maxAge=60000) {
   return new Promise((res,rej)=>{
     if(!navigator.geolocation) return rej({code:0,message:'Geolocation not supported'});
     navigator.geolocation.getCurrentPosition(
-      p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),
+      p=>res({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy}),
       rej,
-      {enableHighAccuracy:highAccuracy, timeout:highAccuracy?12000:20000, maximumAge:highAccuracy?0:30000}
+      {enableHighAccuracy:highAccuracy, timeout:highAccuracy?20000:10000, maximumAge:maxAge}
     );
   });
 }
 
 async function getPosFallback() {
-  try { return await getPos(true); }
+  // Try low accuracy first (network-based, fast, accepts recent cache)
+  try { return await getPos(false, 60000); }
   catch(e) {
-    if(e.code===1) throw e; // permission denied — don't retry
-    return await getPos(false); // retry with low accuracy / cached position
+    if(e.code===1) throw e; // permission denied — stop
+    // Fall back to high accuracy GPS
+    return await getPos(true, 0);
   }
 }
 
@@ -616,6 +618,7 @@ function updateCheckBtn() {
 
   if(openCheckin) {
     btn.className='check-btn cout';
+    btn.disabled=false;
     btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>CHECK OUT</span>';
     badge.className='status-badge in'; bLbl.textContent='CHECKED IN';
     clearInterval(elapsedTimer);
@@ -624,6 +627,7 @@ function updateCheckBtn() {
   } else {
     const canIn = currentPos && (!workplace || haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng)<=(workplace.radius||200));
     btn.className='check-btn '+(canIn?'cin':'idle');
+    btn.disabled=!canIn;
     btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg><span>CHECK IN</span>';
     badge.className='status-badge out'; bLbl.textContent='CHECKED OUT';
     clearInterval(elapsedTimer); el.textContent='';

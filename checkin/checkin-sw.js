@@ -1,4 +1,4 @@
-const CACHE = 'workcheck-v1';
+const CACHE = 'workcheck-v2';
 
 const SKIP = [
   'firestore.googleapis.com',
@@ -6,6 +6,9 @@ const SKIP = [
   'securetoken.googleapis.com',
   'firebaseio.com',
 ];
+
+// Always fetch fresh from network for the app shell and version file
+const NETWORK_FIRST = ['checkin.html', 'checkin-version.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -28,6 +31,18 @@ self.addEventListener('fetch', e => {
   if (!url.startsWith('http')) return;
   if (SKIP.some(s => url.includes(s))) return;
 
+  // Network-first for app shell — always get latest, fall back to cache if offline
+  if (NETWORK_FIRST.some(f => url.includes(f))) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Cache-first for everything else (fonts, icons, scripts)
   e.respondWith(
     caches.match(e.request).then(cached => {
       const net = fetch(e.request).then(res => {
