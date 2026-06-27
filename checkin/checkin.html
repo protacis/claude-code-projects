@@ -576,10 +576,14 @@ async function refreshGPS() {
     pill.disabled=false;
     pill.className='gps-pill err';
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-    if(e.code===1) {
-      pill.innerHTML = isIOS
-        ? '⚠ Blocked — Settings → Safari → Location → Allow · tap to retry'
-        : '⚠ Blocked — allow location in browser settings · tap to retry';
+    const isStandalone=window.navigator.standalone===true;
+    if(e.code===1||e.code===0) {
+      if(isIOS && isStandalone)
+        pill.innerHTML='⚠ Blocked — iPhone Settings → Privacy → Location Services → WorkCheck → While Using · tap to retry';
+      else if(isIOS)
+        pill.innerHTML='⚠ Blocked — Safari: tap ⓐⓐ in address bar → Website Settings → Location → Allow · tap to retry';
+      else
+        pill.innerHTML='⚠ Blocked — allow location in browser settings · tap to retry';
     } else if(e.code===2) {
       pill.innerHTML='⚠ GPS unavailable — tap to retry';
     } else {
