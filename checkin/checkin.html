@@ -265,10 +265,10 @@
     <div class="status-bar">
       <div class="status-badge out" id="e-badge"><div class="sdot"></div><span id="e-badge-lbl">CHECKED OUT</span></div>
       <div class="elapsed" id="e-elapsed"></div>
-      <div class="gps-pill loading" id="gps-pill">
+      <button class="gps-pill loading" id="gps-pill" onclick="refreshGPS()" style="font-family:inherit;cursor:pointer;border:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
-        Getting location...
-      </div>
+        Tap to get location
+      </button>
     </div>
   </div>
   <div style="padding:0 14px calc(env(safe-area-inset-bottom) + 20px)">
@@ -548,7 +548,6 @@ async function initEmployee() {
   await loadOpenCheckin();
   updateCheckBtn();
   loadEmpLog();
-  refreshGPS();
 }
 
 function startClock() {
@@ -564,20 +563,25 @@ function startClock() {
 async function refreshGPS() {
   const pill=document.getElementById('gps-pill');
   pill.className='gps-pill loading';
+  pill.disabled=true;
   pill.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Getting location…';
   try {
     currentPos = await getPosFallback();
+    pill.disabled=false;
     updateGPSPill();
   } catch(e) {
     currentPos=null;
+    pill.disabled=false;
     pill.className='gps-pill err';
-    const retryBtn=`<button onclick="refreshGPS()" style="background:none;border:none;color:inherit;font-size:inherit;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-left:4px">Retry</button>`;
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
     if(e.code===1) {
-      pill.innerHTML='⚠ Location permission denied — allow in browser settings';
+      pill.innerHTML = isIOS
+        ? '⚠ Blocked — Settings → Safari → Location → Allow · tap to retry'
+        : '⚠ Blocked — allow location in browser settings · tap to retry';
     } else if(e.code===2) {
-      pill.innerHTML='⚠ GPS signal unavailable — move to open area' + retryBtn;
+      pill.innerHTML='⚠ GPS unavailable — tap to retry';
     } else {
-      pill.innerHTML='⚠ Location timed out' + retryBtn;
+      pill.innerHTML='⚠ Timed out — tap to retry';
     }
     updateCheckBtn();
   }
@@ -618,7 +622,7 @@ function updateCheckBtn() {
     const upd=()=>{ el.textContent='Since '+fmtTime(openCheckin.checkIn)+' · '+elapsed(openCheckin.checkIn); };
     upd(); elapsedTimer=setInterval(upd,30000);
   } else {
-    const canIn = !workplace || (currentPos && haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng)<=(workplace.radius||200));
+    const canIn = currentPos && (!workplace || haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng)<=(workplace.radius||200));
     btn.className='check-btn '+(canIn?'cin':'idle');
     btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg><span>CHECK IN</span>';
     badge.className='status-badge out'; bLbl.textContent='CHECKED OUT';
@@ -631,9 +635,8 @@ async function handleCheck() {
 }
 
 async function doCheckIn() {
-  if(!currentPos) {
-    if(!confirm('Location unavailable. Check in without GPS verification?')) return;
-  } else if(workplace) {
+  if(!currentPos) return;
+  if(workplace) {
     const d=haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng);
     if(d>(workplace.radius||200)) return alert(`You are ${fmtDist(d)} from the workplace.\nCheck-in requires being within ${workplace.radius||200}m.`);
   }
@@ -643,7 +646,7 @@ async function doCheckIn() {
     const ref=await db.collection('checkins').add({
       userId:currentUser.uid, userName:me.name, phone:me.phone,
       checkIn:firebase.firestore.FieldValue.serverTimestamp(),
-      checkInLat:currentPos?.lat||null, checkInLng:currentPos?.lng||null,
+      checkInLat:currentPos.lat, checkInLng:currentPos.lng,
       checkOut:null, checkOutLat:null, checkOutLng:null,
       date:todayStr(), status:'in'
     });
