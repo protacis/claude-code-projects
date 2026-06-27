@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d0f18">
   <link rel="manifest" href="checkin-manifest.json">
@@ -35,6 +36,7 @@
     .auth-box{width:100%;max-width:400px}
     .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;justify-content:center}
     .auth-logo-icon{width:40px;height:40px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center}
+    .aura-logo{height:40px;object-fit:contain;display:block;margin:0 auto 32px}
     .auth-title{font-size:20px;font-weight:700;margin-bottom:6px}
     .auth-sub{font-size:14px;color:var(--sub);margin-bottom:24px}
     .error-msg{background:var(--red-dim);border:1px solid rgba(239,68,68,.25);border-radius:var(--r-sm);color:var(--red);font-size:13px;padding:10px 14px;margin-bottom:14px;display:none}
@@ -179,7 +181,7 @@
 
 <div id="offline-bar">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
-  Offline — οι αλλαγές θα συγχρονιστούν όταν επανέλθει η σύνδεση
+  Offline — changes will sync when connection is restored
 </div>
 
 <!-- SETUP -->
@@ -203,10 +205,7 @@
 <div id="screen-login" class="screen">
   <div style="display:flex;flex:1;align-items:center;justify-content:center;padding:24px">
     <div class="auth-box">
-      <div class="auth-logo">
-        <div class="auth-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div>
-        <span style="font-size:22px;font-weight:700">WorkCheck</span>
-      </div>
+      <img src="https://aura-lifts.com/wp-content/uploads/2025/01/logo_white.png" alt="Aura" class="aura-logo">
       <div class="auth-title">Welcome back</div>
       <div class="auth-sub">Sign in with your phone number</div>
       <div id="login-err" class="error-msg"></div>
@@ -223,10 +222,7 @@
 <div id="screen-register" class="screen">
   <div style="display:flex;flex:1;align-items:center;justify-content:center;padding:24px">
     <div class="auth-box">
-      <div class="auth-logo">
-        <div class="auth-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div>
-        <span style="font-size:22px;font-weight:700">WorkCheck</span>
-      </div>
+      <img src="https://aura-lifts.com/wp-content/uploads/2025/01/logo_white.png" alt="Aura" class="aura-logo">
       <div class="auth-title">Create account</div>
       <div class="auth-sub">Your manager will approve your access</div>
       <div id="reg-err" class="error-msg"></div>
@@ -336,6 +332,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           Set My Current Location as Workplace
         </button>
+        <button class="btn btn-ghost" style="margin-top:8px" onclick="openCoordsModal()">Set Coordinates Manually</button>
         <button class="btn btn-ghost" style="margin-top:8px" onclick="openRadiusModal()">Change Radius</button>
       </div>
       <div class="card">
@@ -354,12 +351,12 @@
 //  FIREBASE CONFIG  ← paste your config here
 // ══════════════════════════════════════════════
 const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyCtO1qWcEmJjgCH63iu6e47Fq7l_pwwKRc",
+  authDomain:        "checkinaura-4cde2.firebaseapp.com",
+  projectId:         "checkinaura-4cde2",
+  storageBucket:     "checkinaura-4cde2.firebasestorage.app",
+  messagingSenderId: "677782221760",
+  appId:             "1:677782221760:web:427da0750e4a896d4c4e25"
 };
 
 // ══════════════════════════════════════════════
@@ -444,11 +441,23 @@ function setBtnLoading(id,on) {
   else{b.innerHTML=b._orig||b.innerHTML;b.disabled=false;}
 }
 
-function getPos() {
+function getPos(highAccuracy=true) {
   return new Promise((res,rej)=>{
-    if(!navigator.geolocation) return rej(new Error('no geolocation'));
-    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),rej,{enableHighAccuracy:true,timeout:10000});
+    if(!navigator.geolocation) return rej({code:0,message:'Geolocation not supported'});
+    navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),
+      rej,
+      {enableHighAccuracy:highAccuracy, timeout:highAccuracy?12000:20000, maximumAge:highAccuracy?0:30000}
+    );
   });
+}
+
+async function getPosFallback() {
+  try { return await getPos(true); }
+  catch(e) {
+    if(e.code===1) throw e; // permission denied — don't retry
+    return await getPos(false); // retry with low accuracy / cached position
+  }
 }
 
 function authErr(code) {
@@ -538,14 +547,21 @@ function startClock() {
 async function refreshGPS() {
   const pill=document.getElementById('gps-pill');
   pill.className='gps-pill loading';
-  pill.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Getting location...';
+  pill.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg> Getting location…';
   try {
-    currentPos = await getPos();
+    currentPos = await getPosFallback();
     updateGPSPill();
   } catch(e) {
     currentPos=null;
     pill.className='gps-pill err';
-    pill.innerHTML='⚠ Location denied — enable GPS in browser settings';
+    const retryBtn=`<button onclick="refreshGPS()" style="background:none;border:none;color:inherit;font-size:inherit;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;margin-left:4px">Retry</button>`;
+    if(e.code===1) {
+      pill.innerHTML='⚠ Location permission denied — allow in browser settings';
+    } else if(e.code===2) {
+      pill.innerHTML='⚠ GPS signal unavailable — move to open area' + retryBtn;
+    } else {
+      pill.innerHTML='⚠ Location timed out' + retryBtn;
+    }
     updateCheckBtn();
   }
 }
@@ -598,8 +614,9 @@ async function handleCheck() {
 }
 
 async function doCheckIn() {
-  if(!currentPos) return alert('Location required. Please enable GPS and try again.');
-  if(workplace) {
+  if(!currentPos) {
+    if(!confirm('Location unavailable. Check in without GPS verification?')) return;
+  } else if(workplace) {
     const d=haversine(currentPos.lat,currentPos.lng,workplace.lat,workplace.lng);
     if(d>(workplace.radius||200)) return alert(`You are ${fmtDist(d)} from the workplace.\nCheck-in requires being within ${workplace.radius||200}m.`);
   }
@@ -609,7 +626,7 @@ async function doCheckIn() {
     const ref=await db.collection('checkins').add({
       userId:currentUser.uid, userName:me.name, phone:me.phone,
       checkIn:firebase.firestore.FieldValue.serverTimestamp(),
-      checkInLat:currentPos.lat, checkInLng:currentPos.lng,
+      checkInLat:currentPos?.lat||null, checkInLng:currentPos?.lng||null,
       checkOut:null, checkOutLat:null, checkOutLng:null,
       date:todayStr(), status:'in'
     });
@@ -791,6 +808,25 @@ async function captureWorkplace() {
     alert('Could not get location. Enable GPS.'); btn.disabled=false;
     btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Set My Current Location as Workplace';
   }
+}
+
+function openCoordsModal() {
+  openModal(`<div class="modal-title">Set Coordinates Manually</div>
+    <div class="form-group"><label class="form-label">Latitude</label>
+    <input type="number" class="form-input" id="coord-lat" value="${workplace?.lat||''}" placeholder="e.g. 37.97945" step="any"></div>
+    <div class="form-group"><label class="form-label">Longitude</label>
+    <input type="number" class="form-input" id="coord-lng" value="${workplace?.lng||''}" placeholder="e.g. 23.71622" step="any"></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:16px">Find coordinates in Google Maps: right-click on the location → "What's here?"</div>
+    <button class="btn btn-primary" onclick="saveCoords()">Save</button>`);
+}
+
+async function saveCoords() {
+  const lat = parseFloat(document.getElementById('coord-lat').value);
+  const lng = parseFloat(document.getElementById('coord-lng').value);
+  if (isNaN(lat) || isNaN(lng)) return alert('Please enter valid coordinates.');
+  workplace = { lat, lng, radius: workplace?.radius || 200 };
+  await db.collection('settings').doc('workplace').set(workplace);
+  closeModal(); loadSettings();
 }
 
 function openRadiusModal() {
